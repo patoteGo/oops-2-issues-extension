@@ -1002,6 +1002,45 @@ select {
 	text-underline-offset: 2px;
 }
 
+/* ---------- Collapsible scopes help (Settings) ---------- */
+.scopes-help {
+	width: 100%;
+	margin-bottom: 0.75rem;
+}
+.scopes-help > summary {
+	cursor: pointer;
+	font-size: 0.8rem;
+	color: var(--muted, #8b95ab);
+	list-style: none;
+	user-select: none;
+}
+.scopes-help > summary::-webkit-details-marker {
+	display: none;
+}
+.scopes-help > summary::before {
+	content: "▸ ";
+}
+.scopes-help[open] > summary::before {
+	content: "▾ ";
+}
+.scopes-help .scopes-list {
+	margin: 0.35rem 0 0.5rem;
+	padding-left: 1.1rem;
+	font-size: 0.78rem;
+	line-height: 1.5;
+}
+.scopes-help .scopes-list code {
+	font-size: 0.78rem;
+}
+.scopes-help .scopes-note {
+	font-size: 0.74rem;
+	opacity: 0.85;
+}
+.scopes-help .muted {
+	font-size: 0.78rem;
+	margin: 0.35rem 0;
+}
+
 /* ---------- Scrollbar ---------- */
 ::-webkit-scrollbar {
 	width: 10px;

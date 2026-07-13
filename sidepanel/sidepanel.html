@@ -323,6 +323,34 @@
               required
             />
           </label>
+          <details class="scopes-help">
+            <summary>Which scopes does the token need?</summary>
+            <p class="muted">
+              Create one at
+              <a
+                href="https://github.com/settings/tokens?type=beta"
+                target="_blank"
+                rel="noopener noreferrer"
+                >github.com/settings/tokens</a
+              >.
+            </p>
+            <p class="muted"><strong>Fine-grained</strong> — pick the repos
+              you'll file against, then enable:</p>
+            <ul class="muted scopes-list">
+              <li><strong>Issues: Read and write</strong> — create issues</li>
+              <li><strong>Contents: Read and write</strong> — upload screenshots
+                (the public-assets fallback) + auto-create
+                <code>&lt;you&gt;/oops-assets</code></li>
+              <li><strong>Metadata: Read</strong> — required, auto-included</li>
+            </ul>
+            <p class="muted"><strong>Classic</strong> — a single
+              <strong>repo</strong> scope covers all of the above (public +
+              private).</p>
+            <p class="muted scopes-note">Screenshots also try GitHub's
+              session attachment first (no token needed for that part) — so even
+              a read-mostly token still gets inline images if you're logged into
+              github.com.</p>
+          </details>
           <label class="field">
             <span class="label">Assets repository (optional)</span>
             <input
