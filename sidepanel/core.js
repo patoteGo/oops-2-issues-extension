@@ -129,6 +129,10 @@ export function recordReset() {
 
 // ----- Status ----------------------------------------------------------
 export function setStatus(kind, text, ico) {
+	// Always reveal on call: the auth view hides #status by default, so
+	// without this every auth error/busy/ok message is written to an
+	// invisible element (the cause of "fails silently" during connect).
+	el.status.hidden = false;
 	el.status.className = `status status--${kind || "idle"}`;
 	el.statusText.textContent = text;
 	const ic =
@@ -150,7 +154,6 @@ export function setBusy(busy) {
 		b.disabled = busy;
 	});
 	el.submitBtn.disabled = busy;
-	el.loginBtn.disabled = busy;
 	el.attInput.disabled = busy;
 	el.dropzone.classList.toggle("is-busy", busy);
 }

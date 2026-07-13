@@ -164,7 +164,11 @@ export async function handleSubmit() {
 		});
 		resetForm();
 	} catch (err) {
-		setStatus("err", err?.message || "Failed to create issue.");
+		const msg = err?.message || "Failed to create issue.";
+		setStatus("err", msg);
+		// Inline toast beside the submit button: the top status banner scrolls
+		// out of view on a long form, so surface the error where the user is.
+		showFormToast("err", msg, { ms: 8000 });
 	} finally {
 		setButtonLoading(el.submitBtn, false, "Create issue");
 		setBusy(false);
