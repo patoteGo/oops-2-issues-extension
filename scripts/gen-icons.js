@@ -142,6 +142,10 @@ function roundedRect(dst, x0, y0, x1, y1, radius, colorFn) {
 const FONT = {
   E: ['11111', '10000', '10000', '11110', '10000', '10000', '11111'],
   P: ['11110', '10001', '10001', '11110', '10000', '10000', '10000'],
+  O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'],
+  I: ['11111', '00100', '00100', '00100', '00100', '00100', '11111'],
+  // digit '2' (same 5x7 grid as the letters)
+  '2': ['01110', '10001', '00001', '00010', '00100', '01000', '11111'],
 }
 const CELL_H = 7
 const CELL_W = 5
@@ -209,8 +213,8 @@ function render(size) {
   const corner = W * 0.22
   roundedRect(dst, pad, pad, W - pad, W - pad, corner, grad)
 
-  // Foreground: bold white "EP" wordmark, centered.
-  drawText(dst, 'EP', W / 2, W / 2, W * 0.64, W * 0.62, [255, 255, 255, 255])
+  // Foreground: bold white "O2I" wordmark, centered.
+  drawText(dst, 'O2I', W / 2, W / 2, W * 0.74, W * 0.62, [255, 255, 255, 255])
 
   // Box-downsample to target size.
   const out = Buffer.alloc(size * size * 4)
