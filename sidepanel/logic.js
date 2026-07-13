@@ -1,5 +1,5 @@
 /**
- * BugSnap — pure task-description composition logic.
+ * oops 2 issues — pure task-description composition logic.
  *
  * Builds the per-screenshot "source" record, the final task description
  * markdown, and screenshot-list normalization. No DOM/Chrome deps — safe to

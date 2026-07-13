@@ -1,4 +1,4 @@
-const PREFIX = '[BugSnap video debug]'
+const PREFIX = '[oops 2 issues video debug]'
 
 export function debugStep(step, details = {}) {
   try {

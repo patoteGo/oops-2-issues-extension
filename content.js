@@ -1,5 +1,5 @@
 /**
- * BugSnap - Page metadata extraction.
+ * oops 2 issues - Page metadata extraction.
  *
  * Runs in the PAGE context via chrome.scripting.executeScript({ func }).
  * MV3 `func` constraints: fully self-contained (no imports, no closure vars).

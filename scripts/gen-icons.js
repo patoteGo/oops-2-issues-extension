@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /*
- * One-shot icon generator for BugSnap (dependency-free).
+ * One-shot icon generator for oops 2 issues (dependency-free).
  * Renders a rose-gradient rounded square with a bold white "EP" wordmark
  * at 4x supersampling, then box-downsamples for anti-aliasing.
  * Outputs: icons/icon16.png, icons/icon48.png, icons/icon128.png
- * Run: node scripts/gen-icons.js  (from bugsnap-extension/)
+ * Run: node scripts/gen-icons.js  (from oops-2-issues/)
  */
 const fs = require('fs')
 const path = require('path')

@@ -1,4 +1,4 @@
-# BugSnap Video Recording — Manual Test Matrix (QA Gate)
+# oops 2 issues video recording — Manual Test Matrix (QA Gate)
 
 Task 4 of the screen-video-recording feature (PRD objective). Run this matrix
 before shipping any change that touches `lib/recorder.js`, `sidepanel/record*.js`,
@@ -6,7 +6,7 @@ or the upload path. The **automated regression invariants** live in
 `sidepanel/__tests__/video-qa-regression.test.js`; this matrix covers the flows
 that need a real browser + real `getDisplayMedia` share dialog.
 
-**Setup:** `chrome://extensions` → Developer mode → Load unpacked → `bugsnap-extension/dist` (after `npm run build:extension`). Sign in to the EP API in the side panel. Open the EP task compose view.
+**Setup:** `chrome://extensions` → Developer mode → Load unpacked → `oops-2-issues/dist` (after `npm run build`). Connect to GitHub in the side panel and pick a repository. Open the compose view.
 
 ---
 
@@ -15,13 +15,13 @@ that need a real browser + real `getDisplayMedia` share dialog.
 | Step | Action | Expected |
 |------|--------|----------|
 | 1 | Click **Record video** | Browser share dialog opens |
-| 2 | Pick ** Entire screen**, click **Share** | Timer starts (`00:00` → ticking); **Stop sharing** bar appears |
+| 2 | Pick **Entire screen**, click **Share** | Timer starts (`00:00` → ticking); **Stop sharing** bar appears |
 | 3 | Speak into the mic, move the cursor | No errors in the side panel |
 | 4 | Click **Stop** within 60s | Timer freezes; preview `<video>` appears with **Re-record** + **Save** |
 | 5 | Play the preview `<video>` | Webm plays with audio **and** the moving cursor; no **No audio** badge |
 | 6 | Click **Save** | Status: "Recording embedded in the description." |
-| 7 | Inspect the description | A `<video controls src="…blob url…"></video>` block is appended |
-| 8 | DevTools → Network | Exactly **one** `POST /api/upload` fired; the response carried a `file.url` |
+| 7 | Inspect the description | A `**[Screen recording](raw-url)** (mm:ss)` link is appended |
+| 8 | DevTools → Network | Exactly **one** `PUT /repos/{owner}/{repo}/contents` fired; the response carried a `file.url` |
 
 - [ ] Pass
 
@@ -63,7 +63,7 @@ that need a real browser + real `getDisplayMedia` share dialog.
 | 1 | Record a short clip, **Stop** → preview | Preview visible |
 | 2 | Open DevTools → Network, clear the log | — |
 | 3 | Click **Re-record** | First blob discarded; recording restarts |
-| 4 | DevTools → Network | **Zero** `POST /api/upload` calls fired (no upload until Save) |
+| 4 | DevTools → Network | **Zero** `PUT /repos/{owner}/{repo}/contents` calls fired (no upload until Save) |
 | 5 | Record again, **Stop**, **Save** | Exactly one upload fires |
 
 - [ ] Pass
@@ -73,9 +73,9 @@ that need a real browser + real `getDisplayMedia` share dialog.
 | Step | Action | Expected |
 |------|--------|----------|
 | 1 | From a fresh preview, click **Save** | Description updated with `<video controls src=...>` |
-| 2 | Fill title, pick project, click **Submit** | One `POST /api/tasks` fires |
-| 3 | DevTools → Network total | Exactly **one** `POST /api/upload` (from Save) + **one** `POST /api/tasks` (from Submit) |
-| 4 | Open the created task | Description renders a **playable inline `<video>`** pointing at the Blob URL |
+| 2 | Fill title, pick repository, click **Create issue** | One `POST /repos/{owner}/{repo}/issues` fires |
+| 3 | DevTools → Network total | Exactly **one** `PUT /repos/{owner}/{repo}/contents` (from Save) + **one** `POST /repos/{owner}/{repo}/issues` (from Submit) |
+| 4 | Open the created issue | Description renders a **bold link** to the recording in `.oops-assets/` (GitHub strips inline `<video>`) |
 
 - [ ] Pass
 
@@ -100,7 +100,7 @@ that need a real browser + real `getDisplayMedia` share dialog.
 
 ---
 
-## Automated regression invariants (run via `npm run test:extension`)
+## Automated regression invariants (run via `npm test`)
 
 These run on every commit and lock the rules the manual matrix verifies by hand:
 
@@ -113,5 +113,5 @@ These run on every commit and lock the rules the manual matrix verifies by hand:
 ## Sign-off
 
 - [ ] All 8 manual sections pass
-- [ ] `npm run test:extension` green (132+ tests)
+- [ ] `npm test` green (132+ tests)
 - [ ] Recorded on: ______  Tester: ______

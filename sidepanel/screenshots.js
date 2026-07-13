@@ -1,5 +1,5 @@
 /**
- * BugSnap — screenshot image processing + capture list.
+ * oops 2 issues — screenshot image processing + capture list.
  *
  * - PNG -> WebP compression (full capture + region crop), capped to MAX_WIDTH.
  * - The screenshot list state ops + thumbnail grid rendering.

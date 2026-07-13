@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "BugSnap",
-  "version": "1.3.0",
-  "description": "Capture the full tab or a region, write a markdown bug, and file it as a task in EP Project Manager.",
+  "name": "oops 2 issues",
+  "version": "2.0.0",
+  "description": "Capture a screenshot (full tab or region), write a markdown bug, and file it as a GitHub issue via a Personal Access Token.",
   "permissions": [
     "activeTab",
     "tabs",
@@ -17,7 +17,7 @@
     "type": "module"
   },
   "action": {
-    "default_title": "Open BugSnap",
+    "default_title": "Open oops 2 issues",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

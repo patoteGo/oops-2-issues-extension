@@ -1,5 +1,5 @@
 /**
- * BugSnap — reference attachments panel (drag & drop / browse).
+ * oops 2 issues — reference attachments panel (drag & drop / browse).
  *
  * Lets the user attach arbitrary files (images, PDFs, docs, archives) as
  * references alongside screenshots. Pure validation/formatting rules live in

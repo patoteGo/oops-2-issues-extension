@@ -1,5 +1,5 @@
 /**
- * BugSnap — capture flow (full tab + drag-a-region).
+ * oops 2 issues — capture flow (full tab + drag-a-region).
  *
  * Drives the background capture message, compresses the result, and appends it
  * to the screenshot list. Region results arrive later via runtime.onMessage

@@ -1,5 +1,5 @@
 /**
- * BugSnap — pure reference-attachment rules + formatting.
+ * oops 2 issues — pure reference-attachment rules + formatting.
  *
  * Mirrors the /api/upload allow-list and size limit, derives a display
  * category, composes the markdown "#### References" section, and normalizes a

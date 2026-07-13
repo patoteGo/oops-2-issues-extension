@@ -1,5 +1,5 @@
 /**
- * record-session — the BugSnap recording session state machine (task 2/4).
+ * record-session — the oops 2 issues recording session state machine (task 2/4).
  *
  * Pure reducer over the recording session. Phases:
  *   idle      → nothing captured yet

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BugSnap</title>
+    <title>oops 2 issues</title>
     <link rel="stylesheet" href="sidepanel.css" />
   </head>
   <body>
@@ -17,8 +17,8 @@
           height="26"
         />
         <div class="brand-text">
-          <span class="brand-name">BugSnap</span>
-          <span class="brand-sub">EP Project Manager</span>
+          <span class="brand-name">oops 2 issues</span>
+          <span class="brand-sub">GitHub</span>
         </div>
       </div>
       <div class="topbar-actions">
@@ -59,41 +59,43 @@
       <section id="authView" class="card card--center">
         <div class="auth-head">
           <span class="auth-badge" id="authBadge"></span>
-          <h2 class="title">Sign in</h2>
+          <h2 class="title">Connect to GitHub</h2>
           <p class="muted">
-            Connect to your EP Project Manager workspace to file bugs.
+            Paste a GitHub Personal Access Token to file issues from your
+            repositories.
           </p>
         </div>
         <form id="authForm" class="form" autocomplete="on">
           <label class="field">
-            <span class="label">Email or username</span>
+            <span class="label">GitHub token</span>
             <input
-              id="email"
-              name="email"
-              type="text"
-              autocomplete="username"
-              placeholder="you@example.com"
-              required
-            />
-          </label>
-          <label class="field">
-            <span class="label">Password</span>
-            <input
-              id="password"
-              name="password"
+              id="tokenInput"
+              name="token"
               type="password"
-              autocomplete="current-password"
+              autocomplete="off"
+              placeholder="github_pat_… or ghp_…"
               required
             />
           </label>
           <button
-            id="loginBtn"
+            id="connectBtn"
             class="btn btn--primary btn--block"
             type="submit"
           >
             <span class="btn-ico" data-ico="user"></span>
-            <span class="btn-label">Sign in</span>
+            <span class="btn-label">Connect</span>
           </button>
+          <p class="muted" style="margin-top: 0.5rem; font-size: 0.78rem">
+            Create a token at
+            <a
+              href="https://github.com/settings/tokens?type=beta"
+              target="_blank"
+              rel="noopener noreferrer"
+              >github.com/settings/tokens</a
+            >. Recommended scopes: <strong>Contents: Read and write</strong>,
+            <strong>Issues: Read and write</strong>, and
+            <strong>Metadata: Read</strong> (auto-included).
+          </p>
         </form>
       </section>
 
@@ -101,16 +103,16 @@
       <section id="composeView" class="stack" hidden>
         <div class="card">
           <div class="field">
-            <span class="label">Project</span>
+            <span class="label">Repository</span>
             <div class="row row--select">
-              <select id="project" title="Target project"></select>
+              <select id="repo" title="Target repository"></select>
               <button
-                id="refreshProjects"
+                id="refreshRepos"
                 class="icon-btn"
                 type="button"
                 data-ico="refresh"
-                title="Refresh projects"
-                aria-label="Refresh projects"
+                title="Refresh repositories"
+                aria-label="Refresh repositories"
               ></button>
             </div>
           </div>
@@ -299,30 +301,50 @@
         ></div>
         <button id="submitBtn" class="btn btn--accent btn--block" type="button">
           <span class="btn-ico" data-ico="send"></span>
-          <span class="btn-label">Create task</span>
+          <span class="btn-label">Create issue</span>
         </button>
       </section>
 
       <!-- SETTINGS VIEW -->
       <section id="settingsView" class="card card--center" hidden>
         <h2 class="title">Settings</h2>
-        <p class="muted">API endpoint used to sign in and file tasks.</p>
+        <p class="muted">
+          GitHub token used to list repositories, upload screenshots, and create
+          issues.
+        </p>
         <form id="settingsForm" class="form">
           <label class="field">
-            <span class="label">API URL</span>
+            <span class="label">GitHub token</span>
             <input
-              id="settingsApiUrl"
-              type="url"
-              placeholder="http://localhost:3001"
+              id="settingsToken"
+              type="password"
+              autocomplete="off"
+              placeholder="github_pat_… or ghp_…"
               required
             />
           </label>
+          <label class="field">
+            <span class="label">Assets repository (optional)</span>
+            <input
+              id="settingsAssetsRepo"
+              type="text"
+              autocomplete="off"
+              placeholder="your-name/oops-assets"
+            />
+          </label>
+          <p class="muted" style="margin-top: -0.25rem; font-size: 0.78rem">
+            Screenshots try to attach via your github.com session first (renders
+            inline on public <em>and</em> private repos). If that is
+            unavailable, they fall back to a <strong>public</strong> repo whose
+            raw URL still renders inline. Leave blank to auto-create
+            <strong>&lt;you&gt;/oops-assets</strong>.
+          </p>
           <button
             id="saveSettings"
             class="btn btn--primary btn--block"
             type="submit"
           >
-            Save
+            Save &amp; connect
           </button>
           <button
             id="closeSettings"

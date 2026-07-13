@@ -1,5 +1,5 @@
 /**
- * BugSnap — verification/steps checklist (add / check / remove).
+ * oops 2 issues — verification/steps checklist (add / check / remove).
  *
  * Sent as a structured `checklist` field on the task, matching the main app's
  * task checklist ({ id, text, completed, createdAt, completedAt }).

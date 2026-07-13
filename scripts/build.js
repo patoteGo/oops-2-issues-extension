@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Builds the BugSnap extension into ./dist — a clean folder containing ONLY
+ * Builds the oops 2 issues extension into ./dist — a clean folder containing ONLY
  * the runtime files needed to load the extension unpacked in Chrome.
  *
  *   node scripts/build.js           # one-shot build
@@ -66,7 +66,7 @@ function build() {
     if (fs.statSync(src).isDirectory()) copyDir(src, dest)
     else copyFile(src, dest)
   }
-  console.log(`✓ Built BugSnap into dist/ (${COPY.length} entries)`)
+  console.log(`✓ Built oops 2 issues into dist/ (${COPY.length} entries)`)
 }
 
 function watch() {

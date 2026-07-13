@@ -1,5 +1,5 @@
 /**
- * BugSnap - Region selection overlay.
+ * oops 2 issues - Region selection overlay.
  *
  * Injected on demand via chrome.scripting AFTER background captured the full
  * viewport PNG. Drawn over the LIVE page: the whole screen is dimmed on open;
@@ -8,10 +8,10 @@
  * already-captured clean PNG. The overlay tears itself down on confirm/cancel.
  *
  * Runs in the isolated world (has chrome.runtime), manipulates shared DOM.
- * Styles come from selector.css (injected via insertCSS) using .bugsnap-* classes.
+ * Styles come from selector.css (injected via insertCSS) using .oops-* classes.
  */
 ;(() => {
-  const ROOT_ID = 'bugsnap-selector-root'
+  const ROOT_ID = 'oops-selector-root'
   document.getElementById(ROOT_ID)?.remove()
 
   const send = msg => {
@@ -24,27 +24,27 @@
 
   const root = document.createElement('div')
   root.id = ROOT_ID
-  root.className = 'bugsnap-root'
+  root.className = 'oops-root'
 
   const dimEl = document.createElement('div')
-  dimEl.className = 'bugsnap-dim' // whole-screen dim, visible until dragging
+  dimEl.className = 'oops-dim' // whole-screen dim, visible until dragging
 
   const hint = document.createElement('div')
-  hint.className = 'bugsnap-hint'
+  hint.className = 'oops-hint'
   const hintMain = document.createElement('span')
   hintMain.textContent = 'Drag to select a region'
   const hintSub = document.createElement('span')
-  hintSub.className = 'bugsnap-hint-sub'
+  hintSub.className = 'oops-hint-sub'
   hintSub.textContent = 'Esc to cancel'
   hint.append(hintMain, hintSub)
 
   const rectEl = document.createElement('div')
-  rectEl.className = 'bugsnap-rect'
+  rectEl.className = 'oops-rect'
   rectEl.hidden = true
 
   const cancelBtn = document.createElement('button')
   cancelBtn.type = 'button'
-  cancelBtn.className = 'bugsnap-cancel'
+  cancelBtn.className = 'oops-cancel'
   cancelBtn.title = 'Cancel (Esc)'
   cancelBtn.textContent = 'Cancel'
 
@@ -75,8 +75,8 @@
   function onDown(e) {
     // Ignore clicks on the hint/cancel so they don't start a drag.
     if (
-      e.target.closest('.bugsnap-cancel') ||
-      e.target.closest('.bugsnap-hint')
+      e.target.closest('.oops-cancel') ||
+      e.target.closest('.oops-hint')
     )
       return
     if (e.button !== 0 && e.pointerType === 'mouse') return

@@ -1,24 +1,24 @@
 /*
- * BugSnap region-selector overlay styles.
+ * oops 2 issues region-selector overlay styles.
  * Injected via chrome.scripting.insertCSS (not subject to page CSP).
- * All classes are bugsnap-* prefixed to avoid collisions with the host page.
+ * All classes are oops-* prefixed to avoid collisions with the host page.
  *
  * Dimming model ("dark outside, clear inside"):
- *  - .bugsnap-dim covers the whole screen BEFORE the user starts dragging,
+ *  - .oops-dim covers the whole screen BEFORE the user starts dragging,
  *    so the moment Region mode opens everything is darkened.
- *  - Once the user starts dragging, .bugsnap-dim is hidden and .bugsnap-rect's
+ *  - Once the user starts dragging, .oops-dim is hidden and .oops-rect's
  *    giant box-shadow takes over the darkening — emanating outward from the
  *    rect border so everything OUTSIDE stays dark while the INSIDE is clear.
  */
-.bugsnap-root,
-.bugsnap-root * {
+.oops-root,
+.oops-root * {
   box-sizing: border-box;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
     sans-serif;
 }
 
-.bugsnap-root {
+.oops-root {
   position: fixed;
   inset: 0;
   z-index: 2147483647;
@@ -28,7 +28,7 @@
 }
 
 /* Base dim shown before/while a selection is empty. Hidden once dragging. */
-.bugsnap-dim {
+.oops-dim {
   position: absolute;
   inset: 0;
   background: rgba(8, 12, 20, 0.6);
@@ -37,14 +37,14 @@
 
 /* The selection rectangle: transparent fill + a huge spread shadow that
    darkens everything outside it. Inside stays clear. */
-.bugsnap-rect {
+.oops-rect {
   position: absolute;
   background: transparent;
   border: 1.5px solid #f43f5e;
   box-shadow: 0 0 0 9999px rgba(8, 12, 20, 0.6);
   pointer-events: none;
 }
-.bugsnap-rect::after {
+.oops-rect::after {
   content: attr(data-dim);
   position: absolute;
   bottom: -26px;
@@ -59,7 +59,7 @@
   white-space: nowrap;
 }
 
-.bugsnap-hint {
+.oops-hint {
   position: absolute;
   top: 16px;
   left: 50%;
@@ -77,12 +77,12 @@
   pointer-events: none;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
-.bugsnap-hint-sub {
+.oops-hint-sub {
   color: #8b95ab;
   font-size: 12px;
 }
 
-.bugsnap-cancel {
+.oops-cancel {
   position: absolute;
   top: 16px;
   right: 16px;
@@ -95,7 +95,7 @@
   padding: 7px 12px;
   border-radius: 8px;
 }
-.bugsnap-cancel:hover {
+.oops-cancel:hover {
   background: #f43f5e;
   border-color: #f43f5e;
 }

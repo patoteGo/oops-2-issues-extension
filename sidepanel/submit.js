@@ -1,184 +1,204 @@
 /**
- * BugSnap — task submission + form reset.
+ * oops 2 issues — issue submission + form reset.
  *
- * Uploads screenshots then reference files (each with its caption), merges
- * them into the structured attachments array, composes the description, and
- * creates the task.
+ * Uploads screenshots then reference files into the target repo's
+ * `.oops-assets/` (GitHub Contents API), composes a markdown body, and
+ * creates a GitHub issue. Videos/references that don't render inline are
+ * still committed and linked.
  */
 import {
-  el,
-  state,
-  api,
-  setStatus,
-  setBusy,
-  setButtonLoading,
-  showFormToast,
-  recordReset,
-  clearDraft,
-  getRecordResult,
-} from './core.js'
-import { buildDescription } from './logic.js'
-import { buildReferences } from './attachments.js'
-import { debugStep } from './debug.js'
-import { renderShots } from './screenshots.js'
-import { renderAttachments } from './references.js'
-import { renderChecklist } from './checklist.js'
-import { syncPreview } from './editor.js'
-import { saveRecording } from './record-save.js'
+	el,
+	state,
+	api,
+	setStatus,
+	setBusy,
+	setButtonLoading,
+	showFormToast,
+	recordReset,
+	clearDraft,
+	getRecordResult,
+} from "./core.js";
+import { buildDescription } from "./logic.js";
+import { buildReferences } from "./attachments.js";
+import { debugStep } from "./debug.js";
+import { renderShots } from "./screenshots.js";
+import { renderAttachments } from "./references.js";
+import { renderChecklist } from "./checklist.js";
+import { syncPreview } from "./editor.js";
+import { saveRecording } from "./record-save.js";
 
 function dataUrlToBlob(dataUrl) {
-  return fetch(dataUrl).then(r => r.blob())
+	return fetch(dataUrl).then((r) => r.blob());
+}
+
+/** Split a "owner/name" repo value into [owner, name]. */
+function splitRepo(value) {
+	const [owner, name] = String(value || "").split("/");
+	return [owner, name];
 }
 
 export async function handleSubmit() {
-  if (state.busy) return
-  const projectId = el.project.value
-  const title = el.title.value.trim()
-  if (!projectId) {
-    setStatus('err', 'Choose a project first.')
-    return
-  }
-  if (!title) {
-    setStatus('err', 'Title is required.')
-    el.title.focus()
-    return
-  }
+	if (state.busy) return;
+	const [owner, repo] = splitRepo(el.repo.value);
+	const title = el.title.value.trim();
+	if (!owner || !repo) {
+		setStatus("err", "Choose a repository first.");
+		return;
+	}
+	if (!title) {
+		setStatus("err", "Title is required.");
+		el.title.focus();
+		return;
+	}
 
-  setBusy(true)
-  setButtonLoading(el.submitBtn, true)
-  try {
-    // Upload every screenshot (full or region) WITH its per-image description.
-    // The upload endpoint stores `description` on the file object, which the
-    // main app's attachments UI renders natively (DocumentAttachment.description).
-    const files = []
-    for (let i = 0; i < state.screenshots.length; i++) {
-      const shot = state.screenshots[i]
-      const data = shot.data ?? shot
-      const desc = shot.description ?? ''
-      setStatus(
-        'busy',
-        `Uploading screenshot ${i + 1}/${state.screenshots.length}…`
-      )
-      setButtonLoading(el.submitBtn, true, 'Uploading…')
-      const blob = await dataUrlToBlob(data)
-      files.push(await api().uploadScreenshot(state.token, blob, desc))
-    }
+	setBusy(true);
+	setButtonLoading(el.submitBtn, true);
+	// Upload options: the optional public assets repo for Strategy B, and the
+	// login (to build the default "<login>/oops-assets" repo when A is down).
+	const uploadOpts = {
+		assetsRepo: state.assetsRepo || null,
+		login: state.user?.login || null,
+	};
+	try {
+		// Upload every screenshot (full or region) WITH its per-image description.
+		const files = [];
+		for (let i = 0; i < state.screenshots.length; i++) {
+			const shot = state.screenshots[i];
+			const data = shot.data ?? shot;
+			const desc = shot.description ?? "";
+			setStatus(
+				"busy",
+				`Uploading screenshot ${i + 1}/${state.screenshots.length}…`,
+			);
+			setButtonLoading(el.submitBtn, true, "Uploading…");
+			const blob = await dataUrlToBlob(data);
+			files.push(
+				await api().uploadScreenshot(
+					state.token,
+					owner,
+					repo,
+					blob,
+					desc,
+					uploadOpts.assetsRepo,
+					uploadOpts.login,
+				),
+			);
+		}
 
-    // Structured attachments (native panel + descriptions) + markdown captions.
-    const attachments = files.map(toAttachment)
+		// If the user stopped recording but didn't click Save (or Save failed),
+		// save it now before creating the issue. One video = one upload.
+		const pendingRecording = getRecordResult();
+		if (pendingRecording?.blob) {
+			setStatus("busy", "Uploading recording…");
+			setButtonLoading(el.submitBtn, true, "Uploading recording…");
+			const { markdown, file } = await saveRecording({
+				blob: pendingRecording.blob,
+				hasAudio: pendingRecording.hasAudio,
+				durationMs: pendingRecording.durationMs,
+				getToken: () => state.token,
+				getRepo: () => el.repo.value,
+				getAssetsRepo: () => uploadOpts.assetsRepo,
+				getLogin: () => uploadOpts.login,
+				api,
+			});
+			state.uploaded.push(file);
+			const cur = el.description.value.trim();
+			el.description.value = cur ? `${cur}\n\n${markdown}` : markdown;
+			el.description.dispatchEvent(new Event("input", { bubbles: true }));
+		}
 
-    // If the user stopped recording but didn't click Save (or Save click failed),
-    // save it now before creating the task. One video preview = one upload.
-    const pendingRecording = getRecordResult()
-    if (pendingRecording?.blob) {
-      setStatus('busy', 'Uploading recording…')
-      setButtonLoading(el.submitBtn, true, 'Uploading recording…')
-      const { markdown, file } = await saveRecording({
-        blob: pendingRecording.blob,
-        hasAudio: pendingRecording.hasAudio,
-        durationMs: pendingRecording.durationMs,
-        getToken: () => state.token,
-        api,
-      })
-      state.uploaded.push(file)
-      const cur = el.description.value.trim()
-      el.description.value = cur ? `${cur}\n\n${markdown}` : markdown
-      el.description.dispatchEvent(new Event('input', { bubbles: true }))
-    }
+		// Reference files (drag & drop / browse) — upload each with its caption.
+		const refFiles = [];
+		for (let i = 0; i < state.attachments.length; i++) {
+			const att = state.attachments[i];
+			setStatus(
+				"busy",
+				`Uploading reference ${i + 1}/${state.attachments.length}…`,
+			);
+			setButtonLoading(el.submitBtn, true, "Uploading…");
+			const blob = await dataUrlToBlob(att.data);
+			refFiles.push(
+				await api().uploadFile(
+					state.token,
+					owner,
+					repo,
+					blob,
+					att.name,
+					att.description,
+					uploadOpts.assetsRepo,
+					uploadOpts.login,
+				),
+			);
+		}
+		// Already-uploaded files (e.g. saved videos) — keep their URL, no re-upload.
+		const uploadedFiles = state.uploaded.slice();
 
-    // Reference files (drag & drop / browse) — upload each with its caption,
-    // then merge into the structured attachments array for the native panel.
-    const refFiles = []
-    for (let i = 0; i < state.attachments.length; i++) {
-      const att = state.attachments[i]
-      setStatus(
-        'busy',
-        `Uploading reference ${i + 1}/${state.attachments.length}…`
-      )
-      setButtonLoading(el.submitBtn, true, 'Uploading…')
-      const blob = await dataUrlToBlob(att.data)
-      refFiles.push(
-        await api().uploadFile(state.token, blob, att.name, att.description)
-      )
-    }
-    refFiles.map(toAttachment).forEach(a => attachments.push(a))
-    // Already-uploaded files (e.g. saved videos) — attach as-is, no re-upload.
-    state.uploaded.map(toAttachment).forEach(a => attachments.push(a))
+		setStatus("busy", "Creating issue…");
+		setButtonLoading(el.submitBtn, true, "Creating issue…");
+		const description = [
+			buildDescription(el.description.value, files, state.screenshots),
+			buildReferences(refFiles),
+			buildReferences(uploadedFiles)
+				? `#### References\n\n${buildReferences(uploadedFiles).replace("#### References\n\n", "")}`
+				: "",
+			buildChecklist(state.checklist),
+		]
+			.filter(Boolean)
+			.join("\n\n");
+		debugStep("submit:create-payload", {
+			screenshotUploads: files.length,
+			referenceUploads: refFiles.length,
+			savedUploads: uploadedFiles.length,
+		});
+		const issue = await api().createIssue(state.token, owner, repo, {
+			title,
+			body: description,
+		});
 
-    setStatus('busy', 'Creating task…')
-    setButtonLoading(el.submitBtn, true, 'Creating task…')
-    const description = [
-      buildDescription(el.description.value, files, state.screenshots),
-      buildReferences(refFiles),
-    ]
-      .filter(Boolean)
-      .join('\n\n')
-    const payload = {
-      projectId,
-      title,
-      description,
-      priority: state.priority,
-      status: 'open',
-      taskType: 'bug_fix',
-      attachments: JSON.stringify(attachments),
-      checklist: state.checklist.length
-        ? JSON.stringify(state.checklist)
-        : null,
-    }
-    debugStep('submit:create-payload', {
-      screenshotUploads: files.length,
-      referenceUploads: refFiles.length,
-      savedUploads: state.uploaded.length,
-      attachments: attachments.length,
-      videoAttachments: attachments.filter(a => a.type?.startsWith('video/'))
-        .length,
-      descriptionHasVideo: description.includes('<video'),
-    })
-    const task = await api().createTask(state.token, payload)
-    debugStep('submit:create-response', {
-      taskId: task?.id,
-      returnedAttachments: task?.attachments ? 'present' : 'missing',
-    })
-
-    setStatus('ok', 'Task created.')
-    showFormToast('ok', 'Task created.')
-    resetForm()
-  } catch (err) {
-    setStatus('err', err?.message || 'Failed to create task.')
-  } finally {
-    setButtonLoading(el.submitBtn, false, 'Create task')
-    setBusy(false)
-  }
+		const issueUrl = issue?.html_url || "";
+		const num = issue?.number ? ` #${issue.number}` : "";
+		setStatus("ok", "Issue created.");
+		showFormToast("ok", `Issue${num} created.`, {
+			href: issueUrl,
+			label: "Open on GitHub",
+		});
+		resetForm();
+	} catch (err) {
+		setStatus("err", err?.message || "Failed to create issue.");
+	} finally {
+		setButtonLoading(el.submitBtn, false, "Create issue");
+		setBusy(false);
+	}
 }
 
-/** Shape an uploaded file object into the task's DocumentAttachment form. */
-function toAttachment(f) {
-  return {
-    id: f.id,
-    name: f.name,
-    url: f.url,
-    type: f.type,
-    size: f.size,
-    uploadedAt: f.uploadedAt,
-    uploadedBy: f.uploadedBy,
-    description: f.description,
-  }
+/**
+ * Render the checklist as a GitHub-native markdown task list
+ * (`- [ ]` / `- [x]`), which renders as real checkboxes on GitHub. Returns
+ * '' when the list is empty.
+ */
+function buildChecklist(items) {
+	const list = Array.isArray(items) ? items : [];
+	if (!list.length) return "";
+	const lines = list.map(
+		(it) => `- [${it.completed ? "x" : " "}] ${it.text || ""}`,
+	);
+	return `#### Checklist\n\n${lines.join("\n")}`;
 }
 
 export function resetForm() {
-  el.title.value = ''
-  el.description.value = ''
-  el.project.value = ''
-  state.metadata = null
-  state.fullPng = null
-  state.screenshots = []
-  state.attachments = []
-  state.uploaded = []
-  state.checklist = []
-  renderShots()
-  renderAttachments()
-  renderChecklist()
-  recordReset()
-  syncPreview()
-  clearDraft()
+	el.title.value = "";
+	el.description.value = "";
+	el.repo.value = "";
+	state.metadata = null;
+	state.fullPng = null;
+	state.screenshots = [];
+	state.attachments = [];
+	state.uploaded = [];
+	state.checklist = [];
+	renderShots();
+	renderAttachments();
+	renderChecklist();
+	recordReset();
+	syncPreview();
+	clearDraft();
 }

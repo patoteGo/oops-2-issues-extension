@@ -1,5 +1,5 @@
 /**
- * BugSnap — markdown editor (formatting toolbar + Write/Preview tabs).
+ * oops 2 issues — markdown editor (formatting toolbar + Write/Preview tabs).
  *
  * The preview is parsed via DOMParser and sanitized (scripts, on* handlers,
  * and unsafe URL schemes stripped) before appending nodes — avoids innerHTML.
