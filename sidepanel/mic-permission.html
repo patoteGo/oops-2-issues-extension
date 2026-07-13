@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enable BugSnap microphone</title>
+    <style>
+      :root {
+        --bg: #121212;
+        --surface: #1a1a1a;
+        --border: #262626;
+        --text: #fafafa;
+        --muted: #a6a6a6;
+        --primary: #ff7700;
+        --primary-strong: #cc5f00;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 24px;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        letter-spacing: -0.011em;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        line-height: 1.2;
+      }
+      p {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      button {
+        padding: 10px 14px;
+        border: 1px solid var(--primary-strong);
+        border-radius: 8px;
+        background: var(--primary);
+        color: #000;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) {
+        background: var(--primary-strong);
+      }
+      button:disabled {
+        cursor: default;
+        opacity: 0.65;
+      }
+      #status {
+        margin-top: 16px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Enable microphone</h1>
+    <p>BugSnap needs this once to record your voice with screen videos.</p>
+    <button id="allow" type="button">Allow microphone</button>
+    <p id="status">Click the button, then choose Allow.</p>
+    <script type="module" src="mic-permission.js"></script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+# Build artifacts
+bugsnap-extension.zip
+dist/
+
+# OS
+.DS_Store
+
+# Node (no runtime deps today, but future-proof)
+node_modules/
+package-lock.json

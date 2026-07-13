@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BugSnap</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <img
+          src="../icons/icon48.png"
+          alt=""
+          class="brand-logo"
+          width="26"
+          height="26"
+        />
+        <div class="brand-text">
+          <span class="brand-name">BugSnap</span>
+          <span class="brand-sub">EP Project Manager</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span id="userChip" class="chip" hidden>
+          <span class="chip-avatar" id="chipAvatar"></span>
+          <span class="chip-name" id="chipName"></span>
+        </span>
+        <button
+          id="logoutBtn"
+          class="icon-btn"
+          type="button"
+          title="Sign out"
+          aria-label="Sign out"
+          hidden
+        ></button>
+        <button
+          id="settingsToggle"
+          class="icon-btn"
+          type="button"
+          title="Settings"
+          aria-label="Settings"
+        ></button>
+      </div>
+    </header>
+
+    <div
+      id="status"
+      class="status status--idle"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="status-ico" id="statusIco"></span>
+      <span class="status-text" id="statusText">Ready</span>
+    </div>
+
+    <main class="app-main">
+      <!-- AUTH VIEW -->
+      <section id="authView" class="card card--center">
+        <div class="auth-head">
+          <span class="auth-badge" id="authBadge"></span>
+          <h2 class="title">Sign in</h2>
+          <p class="muted">
+            Connect to your EP Project Manager workspace to file bugs.
+          </p>
+        </div>
+        <form id="authForm" class="form" autocomplete="on">
+          <label class="field">
+            <span class="label">Email or username</span>
+            <input
+              id="email"
+              name="email"
+              type="text"
+              autocomplete="username"
+              placeholder="you@example.com"
+              required
+            />
+          </label>
+          <label class="field">
+            <span class="label">Password</span>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <button
+            id="loginBtn"
+            class="btn btn--primary btn--block"
+            type="submit"
+          >
+            <span class="btn-ico" data-ico="user"></span>
+            <span class="btn-label">Sign in</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- COMPOSE VIEW -->
+      <section id="composeView" class="stack" hidden>
+        <div class="card">
+          <div class="field">
+            <span class="label">Project</span>
+            <div class="row row--select">
+              <select id="project" title="Target project"></select>
+              <button
+                id="refreshProjects"
+                class="icon-btn"
+                type="button"
+                data-ico="refresh"
+                title="Refresh projects"
+                aria-label="Refresh projects"
+              ></button>
+            </div>
+          </div>
+          <label class="field">
+            <span class="label">Title</span>
+            <input
+              id="title"
+              type="text"
+              maxlength="255"
+              placeholder="What's the bug?"
+            />
+          </label>
+          <div class="field">
+            <span class="label">Priority</span>
+            <div
+              class="segmented"
+              id="priority"
+              role="group"
+              aria-label="Priority"
+            ></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="tabs" role="tablist" aria-label="Description editor">
+            <button
+              id="tabWrite"
+              class="tab tab--active"
+              type="button"
+              role="tab"
+              aria-selected="true"
+            >
+              Write
+            </button>
+            <button
+              id="tabPreview"
+              class="tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+            >
+              Preview
+            </button>
+          </div>
+          <div id="toolbarWrap" class="md-toolbar-wrap">
+            <div
+              class="md-toolbar"
+              id="mdToolbar"
+              role="toolbar"
+              aria-label="Formatting"
+            ></div>
+          </div>
+          <textarea
+            id="description"
+            rows="6"
+            placeholder="Describe the bug. Markdown supported.&#10;&#10;**Steps:**&#10;1. Go to ...&#10;2. Click ...&#10;&#10;**Expected:** ...&#10;**Actual:** ..."
+          ></textarea>
+          <article id="preview" class="md-preview" hidden></article>
+        </div>
+
+        <div class="card">
+          <div class="editor-head">
+            <span class="label"
+              >Checklist
+              <span id="clCount" class="count-badge" hidden></span>
+            </span>
+            <span id="clProgress" class="cl-progress" hidden></span>
+          </div>
+          <div id="clList" class="cl-list" hidden></div>
+          <div class="cl-add">
+            <input
+              id="clInput"
+              type="text"
+              maxlength="255"
+              placeholder="Add a step to verify (Enter)…"
+              aria-label="Add checklist item"
+            />
+            <button
+              id="clAddBtn"
+              class="icon-btn"
+              type="button"
+              title="Add item"
+              aria-label="Add checklist item"
+            ></button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="editor-head">
+            <span class="label"
+              >Screenshots
+              <span id="shotCount" class="count-badge" hidden></span
+            ></span>
+          </div>
+          <div id="shotList" class="shot-list" hidden></div>
+          <div
+            class="capture-actions"
+            id="captureMode"
+            role="group"
+            aria-label="Capture"
+          ></div>
+        </div>
+
+        <!-- RECORD VIDEO VIEW (task 2/4) -->
+        <div class="card">
+          <div class="editor-head">
+            <span class="label">Record video</span>
+            <span class="att-hint">Screen + mic, up to 60s</span>
+          </div>
+          <div id="recordView" class="stack">
+            <div class="record-controls">
+              <button id="recordStartBtn" class="btn btn--ghost" type="button">
+                <span class="btn-ico" data-ico="video"></span>
+                Record video
+              </button>
+              <span id="recordSavedBadge" class="record-saved" hidden></span>
+              <span id="recordTimer" class="record-timer" hidden>00:00</span>
+              <button
+                id="recordStopBtn"
+                class="btn btn--ghost"
+                type="button"
+                hidden
+              >
+                Stop
+              </button>
+              <button
+                id="recordCancelBtn"
+                class="btn btn--ghost"
+                type="button"
+                hidden
+              >
+                Cancel
+              </button>
+            </div>
+            <video
+              id="recordVideo"
+              class="record-preview"
+              controls
+              hidden
+            ></video>
+            <span id="recordNoAudio" class="record-no-audio" hidden
+              >No audio</span
+            >
+            <div id="recordPreviewActions" class="record-controls" hidden>
+              <button
+                id="recordReRecordBtn"
+                class="btn btn--ghost"
+                type="button"
+              >
+                Re-record
+              </button>
+              <button id="recordSaveBtn" class="btn btn--accent" type="button">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="editor-head">
+            <span class="label"
+              >References <span id="attCount" class="count-badge" hidden></span
+            ></span>
+            <span class="att-hint">Attach any file as a reference</span>
+          </div>
+          <div id="attList" class="att-list" hidden></div>
+          <label class="dropzone" id="dropzone" for="attInput">
+            <input id="attInput" type="file" multiple hidden />
+            <span class="dropzone-ico" data-ico="upload"></span>
+            <span class="dropzone-text"
+              ><strong>Drag &amp; drop</strong> files here, or
+              <span class="dropzone-link">browse</span></span
+            >
+            <span class="dropzone-sub"
+              >Images, PDFs, docs, archives — up to 25&nbsp;MB each</span
+            >
+          </label>
+        </div>
+
+        <div
+          id="formToast"
+          class="form-toast"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+        <button id="submitBtn" class="btn btn--accent btn--block" type="button">
+          <span class="btn-ico" data-ico="send"></span>
+          <span class="btn-label">Create task</span>
+        </button>
+      </section>
+
+      <!-- SETTINGS VIEW -->
+      <section id="settingsView" class="card card--center" hidden>
+        <h2 class="title">Settings</h2>
+        <p class="muted">API endpoint used to sign in and file tasks.</p>
+        <form id="settingsForm" class="form">
+          <label class="field">
+            <span class="label">API URL</span>
+            <input
+              id="settingsApiUrl"
+              type="url"
+              placeholder="http://localhost:3001"
+              required
+            />
+          </label>
+          <button
+            id="saveSettings"
+            class="btn btn--primary btn--block"
+            type="submit"
+          >
+            Save
+          </button>
+          <button
+            id="closeSettings"
+            class="btn btn--ghost btn--block"
+            type="button"
+          >
+            Back
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="sidepanel.js"></script>
+  </body>
+</html>

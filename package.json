@@ -1,0 +1,13 @@
+{
+  "name": "bugsnap-extension",
+  "version": "1.3.0",
+  "description": "BugSnap - Manifest V3 Chrome extension that captures full or region screenshots and files markdown bug tasks in EP Project Manager.",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.js",
+    "watch": "node scripts/build.js --watch",
+    "zip": "npm run build && cd dist && zip -r ../bugsnap-extension.zip . -x '*.DS_Store'",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts"
+  }
+}
