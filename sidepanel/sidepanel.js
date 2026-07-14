@@ -6,7 +6,7 @@
  * `state`/`el`/helpers from core.js. The dependency graph is acyclic:
  * feature modules import core (+ pure logic); nothing imports this module.
  */
-import { api, el, state, fill, svgNode } from "./session.js";
+import { api, el, state, fill, svgNode, uploadContext } from "./session.js";
 import {
 	setStatus,
 	setBusy,
@@ -15,7 +15,7 @@ import {
 	resetCaptureButtons,
 	showView,
 } from "./ui.js";
-import { setRecordReset, setRecordResultGetter } from "./record-bridge.js";
+import { setRecordReset } from "./record-bridge.js";
 import {
 	bootstrapSession,
 	handleConnect,
@@ -112,26 +112,22 @@ function wireStaticIcons() {
 	// will wire the upload path; for now it surfaces the finalized blob.
 	const record = createRecordController();
 	setRecordReset(() => record.reset());
-	setRecordResultGetter(() => record.getResult());
 	el.recordStartBtn?.addEventListener("click", () => record.start());
 	el.recordStopBtn?.addEventListener("click", () => record.stop());
 	el.recordCancelBtn?.addEventListener("click", () => record.cancel());
 	el.recordReRecordBtn?.addEventListener("click", () => record.reRecord());
 	el.recordSaveBtn?.addEventListener("click", async () => {
-		const result = record.getResult();
+		const result = state.pendingRecording;
 		if (!result) return;
 		setBusy(true);
 		setStatus("busy", "Uploading recording…");
 		try {
+			const u = api().uploader(uploadContext(state, el.repo.value));
 			const { markdown: md, file } = await saveRecording({
 				blob: result.blob,
 				hasAudio: result.hasAudio,
 				durationMs: result.durationMs,
-				getToken: () => state.token,
-				getRepo: () => el.repo.value,
-				getAssetsRepo: () => state.assetsRepo || null,
-				getLogin: () => state.user?.login || null,
-				api,
+				uploader: u,
 			});
 			state.uploaded.push(file);
 			debugStep("ui:recording-saved", {

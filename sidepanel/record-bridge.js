@@ -1,33 +1,22 @@
 /**
- * oops 2 issues — record bridge.
+ * oops 2 issues — record reset seam.
  *
- * Decouples submit.js from record.js. submit.js must flush an unsaved
- * Recording before creating the issue (and reset the controller afterwards),
- * but importing the record controller into the submit path would couple the two
- * and risk a cycle. Instead, sidepanel.js (the controller) registers the record
- * controller's two ops here at init; submit.js reads them through this tiny
- * indirection.
+ * The pending Recording itself now flows through state.pendingRecording (set by
+ * record.js on stop, read by the upload pipeline + the Save path) — the same
+ * backbone as Screenshots/References/uploaded. What stays here is the one
+ * control op that can't live in state: resetting the record controller's
+ * internal phase machine + "saved" badge after an issue is created. The
+ * controller instance is owned by sidepanel.js; submit.js's resetForm reaches
+ * its reset() through this registration rather than holding the instance.
  *
- * Extracted out of core.js so core stops growing a hook every time two feature
- * modules need to talk. Leaf module — imports nothing.
+ * Leaf module — imports nothing.
  */
 
 let recordResetFn = () => {};
-let recordResultFn = () => null;
 
 /** Producer (sidepanel.js): register the record controller's reset op. */
 export function setRecordReset(fn) {
 	recordResetFn = typeof fn === "function" ? fn : () => {};
-}
-
-/** Producer (sidepanel.js): register the record controller's result getter. */
-export function setRecordResultGetter(fn) {
-	recordResultFn = typeof fn === "function" ? fn : () => null;
-}
-
-/** Consumer (submit.js): the finalized recording preview, or null. */
-export function getRecordResult() {
-	return recordResultFn();
 }
 
 /** Consumer (submit.js): reset the record controller (after issue creation). */

@@ -90,6 +90,7 @@ export const state = {
 	screenshots: [], // WebP dataURLs (multiple full/region captures)
 	attachments: [], // reference files {data,name,type,size,description}
 	uploaded: [], // already-uploaded files (e.g. saved videos) — embedded as-is
+	pendingRecording: null, // a Recording stopped but not yet Saved — {blob, hasAudio, durationMs}
 	captureMode: "full",
 	priority: "medium",
 	checklist: [],
@@ -98,6 +99,30 @@ export const state = {
 };
 
 export const api = () => new GitHubApi();
+
+/**
+ * Derive the bound upload context for api().uploader(ctx) from the active
+ * Account + the selected repo. Owns the ambient "not connected" /
+ * "no repository" guards so every upload path (submit, Save-button) validates
+ * in one place. Pure — takes the state + the "owner/name" string, returns a
+ * ctx object or throws.
+ */
+export function uploadContext(state, repoValue) {
+	const [owner, repo] = String(repoValue || "").split("/");
+	if (!state.token) {
+		throw new Error("Not connected — GitHub token missing.");
+	}
+	if (!owner || !repo) {
+		throw new Error("No target repository selected.");
+	}
+	return {
+		token: state.token,
+		owner,
+		repo,
+		assetsRepo: state.assetsRepo || null,
+		login: state.user?.login || null,
+	};
+}
 
 // ----- Icon helpers ----------------------------------------------------
 // Parse icon SVG strings via Range.createContextualFragment rather than

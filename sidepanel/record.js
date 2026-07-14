@@ -21,7 +21,7 @@ import {
 	cancel,
 	reRecord,
 } from "./record-session.js";
-import { el } from "./session.js";
+import { el, state } from "./session.js";
 import { setStatus } from "./ui.js";
 
 const TICK_MS = 200;
@@ -169,6 +169,13 @@ export function createRecordController(opts = {}) {
 		try {
 			const result = await recorder.stop();
 			session = stopRecording(session, result);
+			// Publish the pending Recording to state — every feature reads it there,
+			// like Screenshots/References. Cleared on Save/Cancel/re-record/reset.
+			state.pendingRecording = {
+				blob: session.blob,
+				hasAudio: session.hasAudio,
+				durationMs: session.durationMs,
+			};
 			render();
 			status(
 				"ok",
@@ -178,6 +185,7 @@ export function createRecordController(opts = {}) {
 			);
 		} catch (err) {
 			session = cancel(session);
+			state.pendingRecording = null;
 			render();
 			status("err", err?.message || "Stop failed.");
 		}
@@ -186,6 +194,7 @@ export function createRecordController(opts = {}) {
 	/** Discard the blob and start over. */
 	async function rererecord() {
 		session = reRecord(session);
+		state.pendingRecording = null;
 		render();
 		await start();
 	}
@@ -199,6 +208,7 @@ export function createRecordController(opts = {}) {
 			/* already torn down */
 		}
 		session = cancel(session);
+		state.pendingRecording = null;
 		render();
 		status("idle", "Recording cancelled.");
 	}
@@ -207,6 +217,7 @@ export function createRecordController(opts = {}) {
 	function markSaved(durationMs, hasAudio) {
 		savedInfo = { durationMs, hasAudio };
 		session = cancel(session);
+		state.pendingRecording = null;
 		render();
 	}
 
@@ -215,6 +226,7 @@ export function createRecordController(opts = {}) {
 		clearTimer();
 		savedInfo = null;
 		session = createSession();
+		state.pendingRecording = null;
 		render();
 	}
 
@@ -225,15 +237,6 @@ export function createRecordController(opts = {}) {
 		cancel: doCancel,
 		markSaved,
 		reset,
-		/** Exposed for the Save path (task 3): the finalized blob + audio flag. */
-		getResult: () =>
-			session.phase === "preview"
-				? {
-						blob: session.blob,
-						hasAudio: session.hasAudio,
-						durationMs: session.durationMs,
-					}
-				: null,
 		/** Test seam: the live session snapshot. */
 		_session: () => session,
 	};

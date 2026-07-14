@@ -4,18 +4,14 @@
  * The manual test matrix (docs/VIDEO_TEST_MATRIX.md) covers the human-runnable
  * flows. These are the invariants we CAN automate: cross-cutting rules that
  * would silently regress across the recorder / session / save modules. They
- * run against the real (non-mocked) pure logic + a mocked recorder/api,
- * asserting behavior through the public interfaces.
+ * run against the real (non-mocked) pure logic + a mocked uploader, asserting
+ * behavior through the public interfaces.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildDescription, buildRecordingMarkdown } from "../issue-body.js";
 
 const mocks = vi.hoisted(() => ({
-	uploadFile: vi.fn(),
-}));
-
-vi.mock("../../lib/api.js", () => ({
-	GitHubApi: () => ({ uploadFile: mocks.uploadFile }),
+	upload: vi.fn(),
 }));
 
 import { saveRecording } from "../record-save.js";
@@ -33,17 +29,15 @@ describe("QA regression · re-record never uploads", () => {
 });
 
 describe("QA regression · Save fires exactly one upload", () => {
-	it("calls uploadFile exactly once per Save", async () => {
-		mocks.uploadFile.mockResolvedValueOnce({ url: "https://blob/v.webm" });
+	it("calls uploader.upload exactly once per Save", async () => {
+		mocks.upload.mockResolvedValueOnce({ url: "https://blob/v.webm" });
 		await saveRecording({
 			blob: new Blob(["x"], { type: "video/webm" }),
 			hasAudio: true,
 			durationMs: 1000,
-			getToken: () => "tok",
-			getRepo: () => "me/repo",
-			api: () => ({ uploadFile: mocks.uploadFile }),
+			uploader: { upload: mocks.upload },
 		});
-		expect(mocks.uploadFile).toHaveBeenCalledTimes(1);
+		expect(mocks.upload).toHaveBeenCalledTimes(1);
 	});
 });
 
