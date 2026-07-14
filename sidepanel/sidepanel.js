@@ -17,23 +17,24 @@ import {
 	setPriority,
 	saveDraft,
 	resetCaptureButtons,
-	setRecordReset,
-	setRecordResultGetter,
 	showView,
 } from "./core.js";
+import { setRecordReset, setRecordResultGetter } from "./record-bridge.js";
 import {
 	bootstrapSession,
 	handleConnect,
-	handleDisconnect,
+	removeAccount,
 	loadRepos,
-	renderUserChip,
+	switchAccount,
+	upsertAccount,
+	renderAuthMode,
 } from "./auth.js";
 import { capture, onRegionSelected } from "./capture.js";
 import { createRecordController } from "./record.js";
 import { saveRecording } from "./record-save.js";
 import { debugStep } from "./debug.js";
 import { MD_TOOLS, applyFormat, setEditorTab, syncPreview } from "./editor.js";
-import { ATTACHMENT_ACCEPT, handleFilesAdded } from "./references.js";
+import { REFERENCE_ACCEPT, handleFilesAdded } from "./references.js";
 import { addChecklistItem } from "./checklist.js";
 import { handleSubmit } from "./submit.js";
 
@@ -52,6 +53,7 @@ const CAPTURE_MODES = [
 function wireStaticIcons() {
 	fill(el.authBadge, "bug");
 	fill(el.logoutBtn, "logout");
+	fill(el.addAccountBtn, "plus");
 	fill(el.settingsToggle, "settings");
 	fill(el.refreshRepos, "refresh");
 	fill(el.clAddBtn, "plus");
@@ -155,8 +157,8 @@ function wireStaticIcons() {
 	});
 
 	// Reference attachment picker — accept hint mirrors /api/upload; the real
-	// validation lives in validateAttachment() (attachments.js).
-	el.attInput.accept = ATTACHMENT_ACCEPT;
+	// validation lives in validateReference() (references.js).
+	el.attInput.accept = REFERENCE_ACCEPT;
 }
 
 // ----- Settings --------------------------------------------------------
@@ -177,15 +179,8 @@ async function handleSaveSettings(e) {
 	setStatus("busy", "Verifying token…");
 	try {
 		const user = await api().getUser(token);
-		state.token = token;
-		state.user = user;
-		state.assetsRepo = (el.settingsAssetsRepo.value || "").trim() || null;
-		await chrome.storage.local.set({
-			token,
-			user,
-			assetsRepo: state.assetsRepo,
-		});
-		renderUserChip();
+		const assetsRepo = (el.settingsAssetsRepo.value || "").trim() || null;
+		await upsertAccount(token, user, assetsRepo);
 		setStatus("ok", `Connected as @${user.login}.`);
 		showView("compose");
 		await loadRepos();
@@ -199,7 +194,19 @@ async function handleSaveSettings(e) {
 // ----- Events ----------------------------------------------------------
 function bindEvents() {
 	el.authForm.addEventListener("submit", handleConnect);
-	el.logoutBtn.addEventListener("click", handleDisconnect);
+	el.accountSwitch.addEventListener("change", (e) =>
+		switchAccount(e.target.value),
+	);
+	el.addAccountBtn.addEventListener("click", () => {
+		el.tokenInput.value = "";
+		showView("auth");
+		renderAuthMode();
+		setStatus("idle", "Paste another GitHub token to add.");
+	});
+	el.authCancel.addEventListener("click", () =>
+		showView(state.token ? "compose" : "auth"),
+	);
+	el.logoutBtn.addEventListener("click", removeAccount);
 	el.refreshRepos.addEventListener("click", loadRepos);
 
 	el.submitBtn.addEventListener("click", handleSubmit);

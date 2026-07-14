@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "oops 2 issues",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Capture a screenshot (full tab or region), write a markdown bug, and file it as a GitHub issue via a Personal Access Token.",
   "permissions": [
     "activeTab",

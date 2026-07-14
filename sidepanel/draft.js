@@ -8,9 +8,8 @@
  */
 import { el, state, setStatus, setPriority, loadDraft } from "./core.js";
 import { normalizeShots } from "./logic.js";
-import { normalizeAttachments } from "./attachments.js";
 import { renderShots } from "./screenshots.js";
-import { renderAttachments } from "./references.js";
+import { normalizeReferences, renderAttachments } from "./references.js";
 import { renderChecklist } from "./checklist.js";
 
 export async function restoreDraft() {
@@ -35,7 +34,7 @@ export async function restoreDraft() {
 		setStatus("idle", `Restored ${restored.length} capture(s).`);
 	}
 	if (Array.isArray(d.attachments)) {
-		const restoredAtt = normalizeAttachments(d.attachments);
+		const restoredAtt = normalizeReferences(d.attachments);
 		if (restoredAtt.length) {
 			state.attachments = restoredAtt;
 			renderAttachments();

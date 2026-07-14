@@ -25,12 +25,15 @@ export const el = {
 	userChip: $("userChip"),
 	chipAvatar: $("chipAvatar"),
 	chipName: $("chipName"),
+	accountSwitch: $("accountSwitch"),
+	addAccountBtn: $("addAccountBtn"),
 	logoutBtn: $("logoutBtn"),
 	settingsToggle: $("settingsToggle"),
 	authView: $("authView"),
 	authBadge: $("authBadge"),
 	authForm: $("authForm"),
 	tokenInput: $("tokenInput"),
+	authCancel: $("authCancel"),
 	connectBtn: $("connectBtn"),
 	composeView: $("composeView"),
 	repo: $("repo"),
@@ -78,10 +81,12 @@ export const el = {
 
 // ----- Shared state ----------------------------------------------------
 export const state = {
-	token: null, // GitHub PAT
-	user: null, // {login, name, avatar_url, html_url}
+	token: null, // GitHub PAT (active account)
+	user: null, // {login, name, avatar_url, html_url} (active account)
 	repos: [], // GitHub repositories (target picker)
 	assetsRepo: null, // optional "owner/name" public repo for the image fallback (B)
+	accounts: [], // [{id, token, user, assetsRepo}] — every saved PAT
+	activeAccountId: null, // which account is currently in use
 	metadata: null, // page metadata from last capture
 	fullPng: null, // full PNG dataURL (for region crop)
 	screenshots: [], // WebP dataURLs (multiple full/region captures)
@@ -108,23 +113,6 @@ export function svgNode(name) {
 }
 export function fill(elTarget, name) {
 	if (elTarget) elTarget.replaceChildren(svgNode(name));
-}
-
-// ponytail: tiny record-controller hooks. submit.js needs to save an unsaved
-// preview before creating the task without importing the controller.
-let recordResetFn = () => {};
-let recordResultFn = () => null;
-export function setRecordReset(fn) {
-	recordResetFn = typeof fn === "function" ? fn : () => {};
-}
-export function setRecordResultGetter(fn) {
-	recordResultFn = typeof fn === "function" ? fn : () => null;
-}
-export function getRecordResult() {
-	return recordResultFn();
-}
-export function recordReset() {
-	recordResetFn();
 }
 
 // ----- Status ----------------------------------------------------------
@@ -223,8 +211,13 @@ export function showView(name) {
 	el.composeView.hidden = name !== "compose";
 	el.settingsView.hidden = name !== "settings";
 	// Before sign-in: show ONLY the login card (no status, no toolbar controls).
+	// With accounts saved, the switcher / add / remove controls appear on
+	// compose & settings; the auth (connect) screen stays focused.
 	el.status.hidden = isAuth;
 	el.settingsToggle.hidden = isAuth;
+	el.accountSwitch.hidden = isAuth || state.accounts.length <= 1;
+	el.addAccountBtn.hidden = isAuth || state.accounts.length === 0;
+	el.logoutBtn.hidden = isAuth || state.accounts.length === 0;
 }
 
 // ----- Priority control ------------------------------------------------

@@ -8,7 +8,7 @@
  * asserting behavior through the public interfaces.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { buildDescription, buildVideoMarkdown } from "../logic.js";
+import { buildDescription, buildRecordingMarkdown } from "../issue-body.js";
 
 const mocks = vi.hoisted(() => ({
 	uploadFile: vi.fn(),
@@ -23,12 +23,12 @@ import { saveRecording } from "../record-save.js";
 beforeEach(() => vi.clearAllMocks());
 
 describe("QA regression · re-record never uploads", () => {
-	it("buildVideoMarkdown returns empty for a missing URL (no upload → no embed)", () => {
+	it("buildRecordingMarkdown returns empty for a missing URL (no upload → no embed)", () => {
 		// The session UI's reRecord clears the blob before Save can read it; if the
 		// save path were ever reached with no URL, it must embed nothing rather than
-		// a broken <video src="">.
-		expect(buildVideoMarkdown("")).toBe("");
-		expect(buildVideoMarkdown(null)).toBe("");
+		// a broken link.
+		expect(buildRecordingMarkdown("")).toBe("");
+		expect(buildRecordingMarkdown(null)).toBe("");
 	});
 });
 
@@ -49,16 +49,17 @@ describe("QA regression · Save fires exactly one upload", () => {
 
 describe("QA regression · screenshot path unchanged", () => {
 	it("buildDescription still emits ![label](url) for image files (video did not break it)", () => {
-		const out = buildDescription("", [{ url: "http://u/1.png" }], []);
+		const out = buildDescription("", [{ url: "http://u/1.png" }]);
 		expect(out).toBe("![Screenshot 1](http://u/1.png)");
 	});
 
-	it("buildDescription with a video URL via buildVideoMarkdown stays a <video>, not an image", () => {
-		// Sanity: the two embed paths are distinct — images use ![], videos use <video>.
-		const videoMd = buildVideoMarkdown("http://u/v.webm");
-		const descWithVideo = buildDescription("repro", [], []);
-		expect(videoMd).toMatch(/^<video controls/);
-		expect(videoMd).not.toMatch(/^!/);
-		expect(descWithVideo).toBe("repro");
+	it("the recording embed is a bold link, distinct from the screenshot image embed", () => {
+		// Sanity: the two embed paths are distinct — screenshots use ![],
+		// recordings use a bold [] link (GitHub strips inline <video>).
+		const recMd = buildRecordingMarkdown("http://u/v.webm");
+		const descWithShot = buildDescription("repro");
+		expect(recMd).toMatch(/^\*\*\[Screen recording\]/);
+		expect(recMd).not.toMatch(/^!\[/);
+		expect(descWithShot).toBe("repro");
 	});
 });

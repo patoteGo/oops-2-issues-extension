@@ -12,6 +12,7 @@
  * repo and downloadable from the issue).
  */
 import { GitHubApi } from "../lib/api.js";
+import { buildRecordingMarkdown } from "./issue-body.js";
 import { debugStep } from "./debug.js";
 
 function fmtDuration(ms) {
@@ -85,8 +86,10 @@ export async function saveRecording({
 	if (!file?.url) {
 		throw new Error("Upload succeeded but no file URL was returned.");
 	}
-	// GitHub strips inline <video>; embed as a bold link so the clip is
-	// reachable from the issue.
-	const label = hasAudio ? "Screen recording" : "Screen recording (no audio)";
-	return { markdown: `**[${label}](${file.url})** (${duration})`, file };
+	// Embed as a bold link — GitHub strips inline <video> — so the clip is
+	// reachable from the issue. Format owned by buildRecordingMarkdown.
+	return {
+		markdown: buildRecordingMarkdown(file.url, { hasAudio, duration }),
+		file,
+	};
 }

@@ -1,6 +1,6 @@
 {
   "name": "oops-2-issues",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "oops 2 issues — Manifest V3 Chrome extension that captures full or region screenshots and files GitHub issues via a Personal Access Token.",
   "private": true,
   "scripts": {

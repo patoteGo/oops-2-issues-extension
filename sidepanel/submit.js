@@ -14,12 +14,10 @@ import {
 	setBusy,
 	setButtonLoading,
 	showFormToast,
-	recordReset,
 	clearDraft,
-	getRecordResult,
 } from "./core.js";
-import { buildDescription } from "./logic.js";
-import { buildReferences } from "./attachments.js";
+import { recordReset, getRecordResult } from "./record-bridge.js";
+import { buildIssueBody } from "./issue-body.js";
 import { debugStep } from "./debug.js";
 import { renderShots } from "./screenshots.js";
 import { renderAttachments } from "./references.js";
@@ -59,9 +57,25 @@ export async function handleSubmit() {
 		assetsRepo: state.assetsRepo || null,
 		login: state.user?.login || null,
 	};
+	// Best-effort uploads: a PAT without Contents:write (or one scoped away from
+	// the target repo) must NOT block issue creation. Count skips and continue.
+	let uploadFailures = 0;
+	const tryUpload = async (label, fn) => {
+		try {
+			return await fn();
+		} catch (e) {
+			uploadFailures++;
+			debugStep("submit:upload-skipped", {
+				label,
+				error: e?.message || String(e),
+			});
+			return null;
+		}
+	};
 	try {
-		// Upload every screenshot (full or region) WITH its per-image description.
-		const files = [];
+		// Upload every screenshot (full or region) WITH its per-image description,
+		// zipping each upload with its capture's source for issue-body composition.
+		const screenshots = [];
 		for (let i = 0; i < state.screenshots.length; i++) {
 			const shot = state.screenshots[i];
 			const data = shot.data ?? shot;
@@ -71,9 +85,9 @@ export async function handleSubmit() {
 				`Uploading screenshot ${i + 1}/${state.screenshots.length}…`,
 			);
 			setButtonLoading(el.submitBtn, true, "Uploading…");
-			const blob = await dataUrlToBlob(data);
-			files.push(
-				await api().uploadScreenshot(
+			const up = await tryUpload(`screenshot ${i + 1}`, async () => {
+				const blob = await dataUrlToBlob(data);
+				return api().uploadScreenshot(
 					state.token,
 					owner,
 					repo,
@@ -81,8 +95,15 @@ export async function handleSubmit() {
 					desc,
 					uploadOpts.assetsRepo,
 					uploadOpts.login,
-				),
-			);
+				);
+			});
+			if (up) {
+				screenshots.push({
+					url: up.url,
+					description: desc,
+					source: shot.source ?? null,
+				});
+			}
 		}
 
 		// If the user stopped recording but didn't click Save (or Save failed),
@@ -91,20 +112,24 @@ export async function handleSubmit() {
 		if (pendingRecording?.blob) {
 			setStatus("busy", "Uploading recording…");
 			setButtonLoading(el.submitBtn, true, "Uploading recording…");
-			const { markdown, file } = await saveRecording({
-				blob: pendingRecording.blob,
-				hasAudio: pendingRecording.hasAudio,
-				durationMs: pendingRecording.durationMs,
-				getToken: () => state.token,
-				getRepo: () => el.repo.value,
-				getAssetsRepo: () => uploadOpts.assetsRepo,
-				getLogin: () => uploadOpts.login,
-				api,
-			});
-			state.uploaded.push(file);
-			const cur = el.description.value.trim();
-			el.description.value = cur ? `${cur}\n\n${markdown}` : markdown;
-			el.description.dispatchEvent(new Event("input", { bubbles: true }));
+			const rec = await tryUpload("recording", () =>
+				saveRecording({
+					blob: pendingRecording.blob,
+					hasAudio: pendingRecording.hasAudio,
+					durationMs: pendingRecording.durationMs,
+					getToken: () => state.token,
+					getRepo: () => el.repo.value,
+					getAssetsRepo: () => uploadOpts.assetsRepo,
+					getLogin: () => uploadOpts.login,
+					api,
+				}),
+			);
+			if (rec?.file) {
+				state.uploaded.push(rec.file);
+				const cur = el.description.value.trim();
+				el.description.value = cur ? `${cur}\n\n${rec.markdown}` : rec.markdown;
+				el.description.dispatchEvent(new Event("input", { bubbles: true }));
+			}
 		}
 
 		// Reference files (drag & drop / browse) — upload each with its caption.
@@ -116,9 +141,9 @@ export async function handleSubmit() {
 				`Uploading reference ${i + 1}/${state.attachments.length}…`,
 			);
 			setButtonLoading(el.submitBtn, true, "Uploading…");
-			const blob = await dataUrlToBlob(att.data);
-			refFiles.push(
-				await api().uploadFile(
+			const rf = await tryUpload(`reference ${att.name || i + 1}`, async () => {
+				const blob = await dataUrlToBlob(att.data);
+				return api().uploadFile(
 					state.token,
 					owner,
 					repo,
@@ -127,26 +152,24 @@ export async function handleSubmit() {
 					att.description,
 					uploadOpts.assetsRepo,
 					uploadOpts.login,
-				),
-			);
+				);
+			});
+			if (rf) refFiles.push(rf);
 		}
 		// Already-uploaded files (e.g. saved videos) — keep their URL, no re-upload.
 		const uploadedFiles = state.uploaded.slice();
 
 		setStatus("busy", "Creating issue…");
 		setButtonLoading(el.submitBtn, true, "Creating issue…");
-		const description = [
-			buildDescription(el.description.value, files, state.screenshots),
-			buildReferences(refFiles),
-			buildReferences(uploadedFiles)
-				? `#### References\n\n${buildReferences(uploadedFiles).replace("#### References\n\n", "")}`
-				: "",
-			buildChecklist(state.checklist),
-		]
-			.filter(Boolean)
-			.join("\n\n");
+		const description = buildIssueBody({
+			userMd: el.description.value,
+			screenshots,
+			references: refFiles,
+			uploaded: uploadedFiles,
+			checklist: state.checklist,
+		});
 		debugStep("submit:create-payload", {
-			screenshotUploads: files.length,
+			screenshotUploads: screenshots.length,
 			referenceUploads: refFiles.length,
 			savedUploads: uploadedFiles.length,
 		});
@@ -158,9 +181,13 @@ export async function handleSubmit() {
 		const issueUrl = issue?.html_url || "";
 		const num = issue?.number ? ` #${issue.number}` : "";
 		setStatus("ok", "Issue created.");
-		showFormToast("ok", `Issue${num} created.`, {
+		const note = uploadFailures
+			? ` (${uploadFailures} attachment${uploadFailures > 1 ? "s" : ""} skipped — token lacks upload permission)`
+			: "";
+		showFormToast("ok", `Issue${num} created.${note}`, {
 			href: issueUrl,
 			label: "Open on GitHub",
+			ms: uploadFailures ? 9000 : undefined,
 		});
 		resetForm();
 	} catch (err) {
@@ -173,20 +200,6 @@ export async function handleSubmit() {
 		setButtonLoading(el.submitBtn, false, "Create issue");
 		setBusy(false);
 	}
-}
-
-/**
- * Render the checklist as a GitHub-native markdown task list
- * (`- [ ]` / `- [x]`), which renders as real checkboxes on GitHub. Returns
- * '' when the list is empty.
- */
-function buildChecklist(items) {
-	const list = Array.isArray(items) ? items : [];
-	if (!list.length) return "";
-	const lines = list.map(
-		(it) => `- [${it.completed ? "x" : " "}] ${it.text || ""}`,
-	);
-	return `#### Checklist\n\n${lines.join("\n")}`;
 }
 
 export function resetForm() {

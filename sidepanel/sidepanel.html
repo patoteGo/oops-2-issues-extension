@@ -26,12 +26,26 @@
           <span class="chip-avatar" id="chipAvatar"></span>
           <span class="chip-name" id="chipName"></span>
         </span>
+        <select
+          id="accountSwitch"
+          class="account-switch"
+          hidden
+          aria-label="Switch account"
+        ></select>
+        <button
+          id="addAccountBtn"
+          class="icon-btn"
+          type="button"
+          title="Add account"
+          aria-label="Add account"
+          hidden
+        ></button>
         <button
           id="logoutBtn"
           class="icon-btn"
           type="button"
-          title="Sign out"
-          aria-label="Sign out"
+          title="Remove account"
+          aria-label="Remove account"
           hidden
         ></button>
         <button
@@ -84,6 +98,14 @@
           >
             <span class="btn-ico" data-ico="user"></span>
             <span class="btn-label">Connect</span>
+          </button>
+          <button
+            id="authCancel"
+            class="btn btn--ghost btn--block"
+            type="button"
+            hidden
+          >
+            Cancel
           </button>
           <p class="muted" style="margin-top: 0.5rem; font-size: 0.78rem">
             Create a token at

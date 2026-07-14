@@ -145,6 +145,17 @@ svg {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+/* Compact account switcher in the topbar (overrides the full-width select). */
+.account-switch {
+	width: auto;
+	max-width: 150px;
+	height: 30px;
+	padding: 4px 30px 4px 11px;
+	font-size: 11.5px;
+	border-radius: 999px;
+	background-color: var(--surface-2);
+	cursor: pointer;
+}
 
 /* ---------- Icon button ---------- */
 .icon-btn {
