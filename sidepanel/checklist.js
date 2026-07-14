@@ -4,7 +4,8 @@
  * Sent as a structured `checklist` field on the task, matching the main app's
  * task checklist ({ id, text, completed, createdAt, completedAt }).
  */
-import { el, state, svgNode, saveDraft } from './core.js'
+import { el, state, svgNode } from './session.js'
+import { saveDraft } from './ui.js'
 
 function makeChecklistId() {
   return `cl_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`

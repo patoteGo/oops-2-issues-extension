@@ -12,15 +12,8 @@
  * via GET /user; a server-confirmed 'invalid' drops JUST that account (not the
  * others), a transient 'unknown' (network blip) keeps it.
  */
-import {
-	el,
-	state,
-	api,
-	setStatus,
-	setBusy,
-	setButtonLoading,
-	showView,
-} from "./core.js";
+import { el, state, api } from "./session.js";
+import { setStatus, setBusy, setButtonLoading, showView } from "./ui.js";
 import { restoreDraft } from "./draft.js";
 
 function makeId() {

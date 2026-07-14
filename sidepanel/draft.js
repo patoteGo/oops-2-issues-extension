@@ -6,7 +6,8 @@
  * Split out of the controller so it can call render fns across modules without
  * forcing the main controller to import them all.
  */
-import { el, state, setStatus, setPriority, loadDraft } from "./core.js";
+import { el, state } from "./session.js";
+import { setStatus, setPriority, loadDraft } from "./ui.js";
 import { normalizeShots } from "./logic.js";
 import { renderShots } from "./screenshots.js";
 import { normalizeReferences, renderAttachments } from "./references.js";

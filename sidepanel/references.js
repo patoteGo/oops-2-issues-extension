@@ -10,7 +10,8 @@
  * `renderAttachments`, `el.attList/attCount/attInput` — that is the state/DOM
  * layer, distinct from these pure rules.
  */
-import { el, state, svgNode, setStatus, saveDraft } from "./core.js";
+import { el, state, svgNode } from "./session.js";
+import { setStatus, saveDraft } from "./ui.js";
 
 // ----- Pure Reference rules -------------------------------------------
 

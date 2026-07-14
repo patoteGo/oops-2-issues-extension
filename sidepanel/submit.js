@@ -6,16 +6,14 @@
  * creates a GitHub issue. Videos/references that don't render inline are
  * still committed and linked.
  */
+import { el, state, api } from "./session.js";
 import {
-	el,
-	state,
-	api,
 	setStatus,
 	setBusy,
 	setButtonLoading,
 	showFormToast,
 	clearDraft,
-} from "./core.js";
+} from "./ui.js";
 import { recordReset, getRecordResult } from "./record-bridge.js";
 import { buildIssueBody } from "./issue-body.js";
 import { debugStep } from "./debug.js";

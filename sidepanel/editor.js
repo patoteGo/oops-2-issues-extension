@@ -5,7 +5,8 @@
  * and unsafe URL schemes stripped) before appending nodes — avoids innerHTML.
  */
 import { renderMarkdown } from '../lib/markdown.js'
-import { el, state, saveDraft } from './core.js'
+import { el, state } from './session.js'
+import { saveDraft } from './ui.js'
 
 export const MD_TOOLS = [
   { id: 'heading', ico: 'heading', title: 'Heading' },

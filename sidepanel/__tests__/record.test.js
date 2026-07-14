@@ -8,11 +8,9 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// core.js touches document at import time; stub its exports.
-vi.mock('../core.js', () => ({
-  el: {},
-  setStatus: vi.fn(),
-}))
+// session.js / ui.js touch document at import time; stub their exports.
+vi.mock('../session.js', () => ({ el: {} }))
+vi.mock('../ui.js', () => ({ setStatus: vi.fn() }))
 
 // Mock the recorder engine: controllable start/stop/cancel + stop-sharing cb.
 function makeMockRecorder({ hasAudio = true } = {}) {
@@ -32,7 +30,7 @@ function makeMockRecorder({ hasAudio = true } = {}) {
   }
 }
 
-import { setStatus } from '../core.js'
+import { setStatus } from '../ui.js'
 import { createRecordController } from '../record.js'
 
 beforeEach(() => vi.clearAllMocks())
@@ -57,9 +55,7 @@ function setup({ hasAudio } = {}) {
   const savedBadgeEl = document.createElement('span')
   savedBadgeEl.hidden = true
   const ctrl = createRecordController({
-    Recorder: function () {
-      return recorder
-    },
+    Recorder: () => recorder,
     videoEl,
     timerEl,
     badgeEl,
@@ -116,9 +112,7 @@ describe('record controller · start → stop → preview', () => {
     const recorder = makeMockRecorder()
     recorder.start.mockRejectedValue(new Error('getDisplayMedia blocked'))
     const ctrl = createRecordController({
-      Recorder: function () {
-        return recorder
-      },
+      Recorder: () => recorder,
       videoEl: document.createElement('video'),
       timerEl: document.createElement('span'),
       badgeEl: document.createElement('span'),

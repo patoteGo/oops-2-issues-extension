@@ -6,19 +6,15 @@
  * `state`/`el`/helpers from core.js. The dependency graph is acyclic:
  * feature modules import core (+ pure logic); nothing imports this module.
  */
+import { api, el, state, fill, svgNode } from "./session.js";
 import {
-	api,
-	el,
-	state,
-	fill,
-	svgNode,
 	setStatus,
 	setBusy,
 	setPriority,
 	saveDraft,
 	resetCaptureButtons,
 	showView,
-} from "./core.js";
+} from "./ui.js";
 import { setRecordReset, setRecordResultGetter } from "./record-bridge.js";
 import {
 	bootstrapSession,

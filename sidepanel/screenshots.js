@@ -4,7 +4,8 @@
  * - PNG -> WebP compression (full capture + region crop), capped to MAX_WIDTH.
  * - The screenshot list state ops + thumbnail grid rendering.
  */
-import { el, state, svgNode, saveDraft } from './core.js'
+import { el, state, svgNode } from './session.js'
+import { saveDraft } from './ui.js'
 
 export const MAX_WIDTH = 1280
 export const WEBP_QUALITY = 0.7
@@ -95,7 +96,11 @@ export function renderShots() {
     const img = document.createElement('img')
     img.src = src
     img.alt = `Screenshot ${i + 1}`
-    img.addEventListener('click', () => window.open(src, '_blank'))
+    // Screenshots are always self-captured data: URLs — guard before
+    // opening so a tampered draft can never turn this into an open redirect.
+    img.addEventListener('click', () => {
+      if (src.startsWith('data:')) window.open(src, '_blank')
+    })
     const idx = document.createElement('span')
     idx.className = 'shot-item-index'
     idx.textContent = String(i + 1)

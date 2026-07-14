@@ -21,7 +21,8 @@ import {
 	cancel,
 	reRecord,
 } from "./record-session.js";
-import { el, setStatus } from "./core.js";
+import { el } from "./session.js";
+import { setStatus } from "./ui.js";
 
 const TICK_MS = 200;
 const MIC_PERMISSION_KEY = "micPermissionReady";
@@ -66,7 +67,7 @@ function openMicPermissionWindow() {
 
 /** Create a controller bound to the sidepanel record-view DOM. */
 export function createRecordController(opts = {}) {
-	const Recorder = opts.Recorder ?? ScreenRecorder;
+	const makeRecorder = opts.Recorder ?? (() => new ScreenRecorder());
 	const videoEl = opts.videoEl ?? el.recordVideo;
 	const timerEl = opts.timerEl ?? el.recordTimer;
 	const badgeEl = opts.badgeEl ?? el.recordNoAudio;
@@ -78,7 +79,7 @@ export function createRecordController(opts = {}) {
 	const status = opts.setStatus ?? setStatus;
 
 	let session = createSession();
-	const recorder = new Recorder();
+	const recorder = makeRecorder();
 	let timerHandle = null;
 	let savedInfo = null;
 

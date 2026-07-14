@@ -6,14 +6,13 @@
  * (wired in the main controller) and are handled by `onRegionSelected`.
  */
 import { buildSource } from './logic.js'
+import { el, state } from './session.js'
 import {
-  el,
-  state,
   setStatus,
   setBusy,
   setButtonLoading,
   resetCaptureButtons,
-} from './core.js'
+} from './ui.js'
 import { compressFull, cropAndCompress, addShot } from './screenshots.js'
 
 /**
