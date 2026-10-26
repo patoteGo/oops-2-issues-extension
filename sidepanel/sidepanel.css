@@ -1071,3 +1071,54 @@ select {
 	border-radius: 8px;
 	border: 2px solid var(--bg);
 }
+
+/* ---------- Description zoom (fullscreen) — issue #1 ---------- */
+#descriptionCard {
+	position: relative;
+}
+
+#descriptionCard #description {
+	resize: vertical;
+}
+
+/* Fullscreen: fill the whole extension window (width + height). */
+#descriptionCard.card--zoom {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	width: 100%;
+	height: 100%;
+	max-height: none;
+	margin: 0;
+	border: none;
+	border-radius: 0;
+	overflow: auto;
+	background: var(--surface);
+}
+
+/* The card is already a column flexbox; let the editor/preview take the rest
+   of the height so markdown and images are fully visible and scrollable. */
+#descriptionCard.card--zoom #description,
+#descriptionCard.card--zoom #preview {
+	flex: 1 1 auto;
+	min-height: 40vh;
+	overflow: auto;
+}
+
+#descriptionCard.card--zoom .md-preview img {
+	max-width: 100%;
+	height: auto;
+}
+
+/* Zoom toggle button in the description card header. */
+.desc-zoom-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: -4px;
+}
+
+#descZoomBtn {
+	flex: none;
+}

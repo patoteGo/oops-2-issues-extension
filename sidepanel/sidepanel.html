@@ -172,7 +172,18 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="descriptionCard">
+          <div class="desc-zoom-head">
+            <span class="label">Description</span>
+            <button
+              id="descZoomBtn"
+              class="icon-btn"
+              type="button"
+              title="Maximize description"
+              aria-label="Maximize description"
+              aria-pressed="false"
+            ></button>
+          </div>
           <div class="tabs" role="tablist" aria-label="Description editor">
             <button
               id="tabWrite"
@@ -208,6 +219,8 @@
           ></textarea>
           <article id="preview" class="md-preview" hidden></article>
         </div>
+        <!-- Module scripts are deferred: runs after the DOM above is parsed. -->
+        <script type="module" src="description-zoom.js"></script>
 
         <div class="card">
           <div class="editor-head">
