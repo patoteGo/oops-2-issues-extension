@@ -35,6 +35,8 @@ export const el = {
 	connectBtn: $("connectBtn"),
 	composeView: $("composeView"),
 	repo: $("repo"),
+	repoSearch: $("repoSearch"),
+	repoOwner: $("repoOwner"),
 	refreshRepos: $("refreshRepos"),
 	title: $("title"),
 	priority: $("priority"),

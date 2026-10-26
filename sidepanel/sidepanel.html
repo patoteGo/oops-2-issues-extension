@@ -127,6 +127,20 @@
           <div class="field">
             <span class="label">Repository</span>
             <div class="row row--select">
+              <input
+                id="repoSearch"
+                type="search"
+                placeholder="Search repositories…"
+                autocomplete="off"
+                aria-label="Fuzzy search repositories"
+              />
+              <select
+                id="repoOwner"
+                aria-label="Filter by owner"
+                title="Filter by owner"
+              ></select>
+            </div>
+            <div class="row row--select">
               <select id="repo" title="Target repository"></select>
               <button
                 id="refreshRepos"

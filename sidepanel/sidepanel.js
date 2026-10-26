@@ -25,6 +25,8 @@ import {
 	upsertAccount,
 	renderAuthMode,
 } from "./auth.js";
+import { filterRepos } from "./logic.js";
+import { capture, onRegionSelected } from "./capture.js";
 import { capture, onRegionSelected } from "./capture.js";
 import { createRecordController } from "./record.js";
 import { saveRecording } from "./record-save.js";
@@ -183,6 +185,79 @@ async function handleSaveSettings(e) {
 	}
 }
 
+// ----- Repository search + owner filter --------------------------------
+// The repo <select> is rendered by auth.js on every load/refresh. Rather than
+// touch every render path, we keep the search input + owner dropdown in sync
+// here and re-apply the filters whenever the underlying option list changes
+// (MutationObserver) or the user types/picks.
+let repoSyncing = false;
+
+/**
+ * Rebuild the owner dropdown from state.repos (preserving the current
+ * selection) and narrow the repo options using the fuzzy query + owner
+ * filter. An empty query + all-owners shows everything; the previously
+ * selected repo stays selected while it remains visible.
+ */
+function applyRepoFilters() {
+	if (repoSyncing) return;
+	repoSyncing = true;
+	try {
+		// Owner dropdown — always derived from the full repo list.
+		const prevOwner = el.repoOwner.value || "";
+		const owners = [...new Set(state.repos.map((r) => r.owner))].sort((a, b) =>
+			String(a).localeCompare(String(b)),
+		);
+		el.repoOwner.replaceChildren();
+		const all = document.createElement("option");
+		all.value = "";
+		all.textContent = "All owners";
+		el.repoOwner.appendChild(all);
+		for (const owner of owners) {
+			const o = document.createElement("option");
+			o.value = owner;
+			o.textContent = owner;
+			el.repoOwner.appendChild(o);
+		}
+		el.repoOwner.value = owners.includes(prevOwner) ? prevOwner : "";
+
+		// Filtered repo options.
+		const prev = el.repo.value;
+		const visible = filterRepos(
+			state.repos,
+			el.repoSearch.value,
+			el.repoOwner.value,
+		);
+		el.repo.replaceChildren();
+		const placeholder = document.createElement("option");
+		placeholder.value = "";
+		placeholder.textContent = !state.repos.length
+			? "No repositories found"
+			: visible.length
+				? "Select a repository…"
+				: "No repositories match";
+		el.repo.appendChild(placeholder);
+		for (const r of visible) {
+			const o = document.createElement("option");
+			o.value = r.full_name; // "owner/name"
+			o.textContent = `${r.full_name}${r.private ? " 🔒" : ""}`;
+			el.repo.appendChild(o);
+		}
+		if (visible.some((r) => r.full_name === prev)) el.repo.value = prev;
+	} finally {
+		repoSyncing = false;
+	}
+}
+
+function wireRepoFilters() {
+	el.repoSearch.addEventListener("input", applyRepoFilters);
+	el.repoOwner.addEventListener("change", applyRepoFilters);
+	// auth.js re-renders the repo select on every load/refresh/account switch —
+	// re-apply the active filters whenever its option list changes.
+	new MutationObserver(applyRepoFilters).observe(el.repo, {
+		childList: true,
+	});
+}
+
 // ----- Events ----------------------------------------------------------
 function bindEvents() {
 	el.authForm.addEventListener("submit", handleConnect);
@@ -255,6 +330,8 @@ function bindEvents() {
 
 	el.repo.addEventListener("change", saveDraft);
 	el.title.addEventListener("input", saveDraft);
+
+	wireRepoFilters();
 
 	// Messages from background (tab changes) and the region selector.
 	chrome.runtime.onMessage.addListener((msg) => {
