@@ -1,0 +1,17 @@
+{
+  "_schema": {
+    "description": "Maps full repository names (owner/repo) to URL glob patterns. When the active tab's URL matches a pattern, the extension auto-selects that repository in the dropdown. Patterns are shell-style globs ('*' matches anything) tested against the full URL string, case-insensitive. First match wins.",
+    "example": {
+      "owner/repo-name": [
+        "https://github.com/owner/repo-name*",
+        "https://app.example.com/*"
+      ]
+    }
+  },
+  "patoteGo/oops-2-issues": [
+    "https://github.com/patoteGo/oops-2-issues*"
+  ],
+  "patoteGo/oops-2-issues-exntension": [
+    "https://github.com/patoteGo/oops-2-issues-exntension*"
+  ]
+}

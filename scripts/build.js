@@ -21,6 +21,7 @@ const DIST = path.join(ROOT, 'dist')
 // Runtime files/dirs (relative to ROOT) copied verbatim into dist/.
 const COPY = [
   'manifest.json',
+  'repo-url-map.json',
   'background.js',
   'content.js',
   'selector.js',
