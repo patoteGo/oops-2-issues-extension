@@ -92,3 +92,4 @@ function watch() {
 
 if (process.argv.includes('--watch')) watch()
 else build()
+  'repo-url-map.json',

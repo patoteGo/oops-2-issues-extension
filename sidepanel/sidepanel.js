@@ -281,3 +281,12 @@ async function init() {
 }
 
 init();
+import { autoSelectForActiveTab } from "./repo-autoselect.js";
+			// Re-evaluate auto-selection whenever the active tab changes while
+			// the panel is open.
+			if (msg.action === "TAB_CHANGED" && !state.busy) {
+				autoSelectForActiveTab();
+			}
+	// Auto-select the repository for the page that was open when the panel
+	// launched. No match → the dropdown keeps its current default behavior.
+	await autoSelectForActiveTab();
