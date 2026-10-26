@@ -108,7 +108,9 @@ Then in Chrome / Edge / Brave:
 
 1. Browse to the page with the bug. Click the **oops 2 issues** icon → the
    side panel opens.
-2. **Repository** — pick the target repo from the dropdown (🔁 refresh).
+2. **Repository** — pick the target repo from the dropdown (🔁 refresh), or
+   [configure URL auto-selection](docs/REPOSITORY_URLS.md) to select it from
+   the active page's URL.
 3. **Title** — auto-filled from the page title; edit as needed. Set **Priority**.
 4. **Description** — write markdown. The selected text on the page is pre-filled.
 5. **Screenshots** — click **Full Screen** or **Partial** (drag a region).
@@ -181,6 +183,10 @@ npm run zip   # builds dist/, then → oops-2-issues.zip
 
 ## Configure / troubleshoot
 
+- **Select a repository from the page URL** — add each repository's full
+  `owner/repo` name and URL patterns to this extension's
+  [`repo-url-map.json`](repo-url-map.json). Nothing needs to be added to the
+  target repositories. See the [setup guide and examples](docs/REPOSITORY_URLS.md).
 - **Change token / reconnect** — open **Settings** (gear icon), paste a new
   token, **Save & connect**.
 - **Assets repository** — optional; set a public `owner/name` repo for the
