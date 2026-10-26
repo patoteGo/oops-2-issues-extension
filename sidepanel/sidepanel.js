@@ -33,6 +33,7 @@ import { MD_TOOLS, applyFormat, setEditorTab, syncPreview } from "./editor.js";
 import { REFERENCE_ACCEPT, handleFilesAdded } from "./references.js";
 import { addChecklistItem } from "./checklist.js";
 import { handleSubmit } from "./submit.js";
+import { loadUrlMap, matchRepoForUrl } from "../lib/url-map.js";
 
 const PRIORITIES = [
 	{ value: "low", label: "Low" },
@@ -183,6 +184,40 @@ async function handleSaveSettings(e) {
 	}
 }
 
+// ----- URL -> repo auto-select -----------------------------------------
+/**
+ * Read the active tab's URL and, if it matches a pattern in url-map.json,
+ * pre-select the mapped repository in the dropdown. Never overrides a
+ * user-chosen repo silently; failures are non-fatal so the default behavior
+ * is preserved.
+ */
+async function autoSelectRepoForActiveTab() {
+	try {
+		if (!state.token) return; // repos not loaded yet
+		const [tab] = await chrome.tabs.query({
+			active: true,
+			currentWindow: true,
+		});
+		const url = tab?.url;
+		if (!url) return;
+		const map = await loadUrlMap();
+		const repos = state.repos || [];
+		const match = matchRepoForUrl(url, map, repos);
+		if (match) {
+			const option = el.repo.querySelector(
+				`option[value="${CSS.escape(match)}"]`,
+			);
+			if (option) {
+				el.repo.value = match;
+				saveDraft();
+				debugStep("ui:repo-autoselected", { url, repo: match });
+			}
+		}
+	} catch {
+		/* never break the panel on auto-select */
+	}
+}
+
 // ----- Events ----------------------------------------------------------
 function bindEvents() {
 	el.authForm.addEventListener("submit", handleConnect);
@@ -278,6 +313,7 @@ async function init() {
 	wireStaticIcons();
 	bindEvents();
 	await bootstrapSession();
+	await autoSelectRepoForActiveTab();
 }
 
 init();

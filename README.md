@@ -119,6 +119,34 @@ Then in Chrome / Edge / Brave:
    with a public-assets fallback), then the issue is created. An
    **Open on GitHub** link appears in the toast.
 
+### Auto-select the repository by URL
+
+The extension ships a `url-map.json` file that maps URL patterns to
+repository full names. When you open the side panel, the active tab's URL is
+matched (case-insensitively, at host/domain level, optionally with a path
+prefix) against the patterns; on a match the **Repository** dropdown
+auto-selects the mapped repo. If nothing matches, the default behavior is
+kept.
+
+To add a mapping, append a key/value to `url-map.json`:
+
+```json
+{
+  "myapp.example.com": "myorg/myapp-repo",
+  "*.mycompany.com": "myorg/internal-tools",
+  "github.com/myorg/myrepo": "myorg/myrepo"
+}
+```
+
+Pattern forms:
+
+- `"example.com"` — matches any URL on that host (any path).
+- `"*.example.com"` — matches the host and any subdomain.
+- `"github.com/owner"` — matches the host **and** a path starting with `/owner`.
+
+Entries whose mapped repository is not in your repo list are ignored, and the
+`_comment` key is reserved for documentation.
+
 ## Architecture
 
 ```

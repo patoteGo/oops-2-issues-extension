@@ -1,0 +1,18 @@
+{
+	"_comment": [
+		"Maps URL patterns to repository full names (owner/repo).",
+		"Add a new mapping by appending an entry: the key is a URL pattern,",
+		"the value is the repository full name that should be auto-selected",
+		"when the active tab URL matches it. Matching is case-insensitive.",
+		"",
+		"Pattern forms:",
+		'  "example.com"          -> any URL whose host is example.com',
+		'  "*.example.com"        -> any subdomain of example.com',
+		'  "example.com/path"     -> host example.com AND path starting with /path',
+		"",
+		"Examples (safe to delete once you add your own):"
+	],
+	"example.com": "patoteGo/oops-2-issues-extension",
+	"*.mycompany.com": "patoteGo/oops-2-issues-extension",
+	"github.com/patoteGo": "patoteGo/oops-2-issues-extension"
+}
