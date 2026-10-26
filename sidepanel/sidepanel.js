@@ -6,6 +6,7 @@
  * `state`/`el`/helpers from core.js. The dependency graph is acyclic:
  * feature modules import core (+ pure logic); nothing imports this module.
  */
+import { autoSelectForActiveTab } from "./repo-autoselect.js";
 import { api, el, state, fill, svgNode, uploadContext } from "./session.js";
 import {
 	setStatus,
@@ -266,6 +267,7 @@ function bindEvents() {
 			setBusy(false);
 			setStatus("idle", "Region capture cancelled.");
 		} else if (msg.action === "TAB_CHANGED" || msg.action === "TAB_UPDATED") {
+            if (!state.busy) void autoSelectForActiveTab();
 			if (state.screenshots.length && !state.busy) {
 				setStatus("idle", "Active tab changed — snap again if needed.");
 			}
@@ -278,15 +280,7 @@ async function init() {
 	wireStaticIcons();
 	bindEvents();
 	await bootstrapSession();
+	await autoSelectForActiveTab();
 }
 
 init();
-import { autoSelectForActiveTab } from "./repo-autoselect.js";
-			// Re-evaluate auto-selection whenever the active tab changes while
-			// the panel is open.
-			if (msg.action === "TAB_CHANGED" && !state.busy) {
-				autoSelectForActiveTab();
-			}
-	// Auto-select the repository for the page that was open when the panel
-	// launched. No match → the dropdown keeps its current default behavior.
-	await autoSelectForActiveTab();
