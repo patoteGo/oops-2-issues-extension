@@ -14,6 +14,7 @@
  */
 const fs = require('fs')
 const path = require('path')
+const { execFileSync } = require('child_process')
 
 const ROOT = path.resolve(__dirname, '..')
 const DIST = path.join(ROOT, 'dist')
@@ -54,7 +55,27 @@ function copyDir(src, dest) {
   }
 }
 
+/** Fail before replacing dist/ when a runtime JavaScript module cannot load. */
+function checkSyntax(src) {
+  if (!fs.statSync(src).isDirectory()) {
+    if (path.extname(src) === '.js') {
+      execFileSync(process.execPath, ['--check', src], { stdio: 'inherit' })
+    }
+    return
+  }
+
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    if (SKIP_DIRS.has(entry.name)) continue
+    const file = path.join(src, entry.name)
+    checkSyntax(file)
+  }
+}
+
 function build() {
+  for (const item of COPY) {
+    const src = path.join(ROOT, item)
+    if (fs.existsSync(src)) checkSyntax(src)
+  }
   rmrf(DIST)
   fs.mkdirSync(DIST, { recursive: true })
   for (const item of COPY) {

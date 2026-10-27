@@ -15,6 +15,29 @@
 import { el, state, api } from "./session.js";
 import { setStatus, setBusy, setButtonLoading, showView } from "./ui.js";
 import { restoreDraft } from "./draft.js";
+import { autoSelectForActiveTab } from "./repo-autoselect.js";
+
+/** Ask the background worker to verify a PAT without depending on panel fetch. */
+export async function getAuthenticatedUser(token) {
+	return new Promise((resolve, reject) => {
+		const timeout = setTimeout(() => {
+			reject(new Error("GitHub verification timed out. Try again."));
+		}, 12_000);
+
+		chrome.runtime.sendMessage({ action: "VERIFY_GITHUB_TOKEN", token }, (reply) => {
+			clearTimeout(timeout);
+			if (chrome.runtime.lastError) {
+				reject(new Error(chrome.runtime.lastError.message));
+				return;
+			}
+			if (!reply?.ok) {
+				reject(new Error(reply?.error || "Could not verify the GitHub token."));
+				return;
+			}
+			resolve(reply.user);
+		});
+	});
+}
 
 function makeId() {
 	return (
@@ -150,7 +173,7 @@ export async function handleConnect(e) {
 			setStatus("err", "Paste a GitHub token first.");
 			return;
 		}
-		const user = await api().getUser(token);
+		const user = await getAuthenticatedUser(token);
 		el.tokenInput.value = "";
 		await upsertAccount(token, user);
 		setStatus("ok", `Connected as @${user.login}.`);
@@ -204,6 +227,7 @@ async function enterCompose() {
 	showView("compose");
 	await loadRepos();
 	await restoreDraft();
+	await autoSelectForActiveTab();
 }
 
 // ----- Repos -----------------------------------------------------------
@@ -218,6 +242,7 @@ export async function loadRepos() {
 	try {
 		state.repos = await api().getRepos(state.token);
 		renderRepoSelect();
+		await autoSelectForActiveTab();
 	} catch (err) {
 		el.repo.replaceChildren(
 			Object.assign(document.createElement("option"), {

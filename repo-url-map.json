@@ -8,6 +8,11 @@
       ]
     }
   },
+  "patoteGo/finance-conductor": [
+    "https://expenses.epsoftware.com.br/*",
+    "https://github.com/patoteGo/finance-conductor",
+    "https://github.com/patoteGo/finance-conductor/*"
+  ],
   "patoteGo/oops-2-issues": [
     "https://github.com/patoteGo/oops-2-issues*"
   ],

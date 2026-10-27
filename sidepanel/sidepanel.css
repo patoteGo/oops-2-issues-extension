@@ -374,6 +374,18 @@ select {
 	gap: 8px;
 	align-items: stretch;
 }
+#repo[size]:not([size="1"]) {
+	background-image: none;
+	padding: 4px;
+}
+#repo[size]:not([size="1"]) option {
+	padding: 8px 10px;
+	border-radius: var(--radius-xs);
+}
+#repo[size]:not([size="1"]) option:checked {
+	background: var(--surface-3);
+	color: var(--text);
+}
 .row--select select {
 	flex: 1;
 }

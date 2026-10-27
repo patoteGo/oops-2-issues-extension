@@ -3,6 +3,10 @@ import { matchRepo, loadUrlMap } from "../lib/repo-match.js";
 import map from "../repo-url-map.json" with { type: "json" };
 
 describe("matchRepo", () => {
+	it("maps the Expenses page to finance-conductor in the bundled map", () => {
+		expect(matchRepo(loadUrlMap(map), "https://expenses.epsoftware.com.br/expenses"))
+			.toBe("patoteGo/finance-conductor");
+	});
 	it("matches an exact URL pattern", () => {
 		expect(
 			matchRepo(

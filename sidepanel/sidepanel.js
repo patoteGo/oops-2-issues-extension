@@ -25,9 +25,9 @@ import {
 	switchAccount,
 	upsertAccount,
 	renderAuthMode,
+	getAuthenticatedUser,
 } from "./auth.js";
 import { filterRepos } from "./logic.js";
-import { capture, onRegionSelected } from "./capture.js";
 import { capture, onRegionSelected } from "./capture.js";
 import { createRecordController } from "./record.js";
 import { saveRecording } from "./record-save.js";
@@ -173,7 +173,7 @@ async function handleSaveSettings(e) {
 	setBusy(true);
 	setStatus("busy", "Verifying token…");
 	try {
-		const user = await api().getUser(token);
+		const user = await getAuthenticatedUser(token);
 		const assetsRepo = (el.settingsAssetsRepo.value || "").trim() || null;
 		await upsertAccount(token, user, assetsRepo);
 		setStatus("ok", `Connected as @${user.login}.`);
@@ -192,6 +192,7 @@ async function handleSaveSettings(e) {
 // here and re-apply the filters whenever the underlying option list changes
 // (MutationObserver) or the user types/picks.
 let repoSyncing = false;
+let repoObserver = null;
 
 /**
  * Rebuild the owner dropdown from state.repos (preserving the current
@@ -244,17 +245,36 @@ function applyRepoFilters() {
 			el.repo.appendChild(o);
 		}
 		if (visible.some((r) => r.full_name === prev)) el.repo.value = prev;
+		// Show fuzzy matches inline while searching, rather than hiding them
+		// in the native collapsed dropdown. Keep the ordinary picker at rest.
+		el.repo.size = el.repoSearch.value.trim()
+			? Math.max(2, Math.min(visible.length + 1, 7))
+			: 1;
 	} finally {
+		// MutationObserver runs asynchronously, after repoSyncing is reset.
+		// Discard our own option rewrites so they cannot schedule another render.
+		repoObserver?.takeRecords();
 		repoSyncing = false;
 	}
 }
 
 function wireRepoFilters() {
 	el.repoSearch.addEventListener("input", applyRepoFilters);
+	el.repoSearch.addEventListener("focus", applyRepoFilters);
+	el.repoSearch.addEventListener("keydown", (event) => {
+		if (event.key !== "ArrowDown" || el.repo.size <= 1) return;
+		event.preventDefault();
+		el.repo.focus();
+		if (!el.repo.value && el.repo.options.length > 1) el.repo.selectedIndex = 1;
+	});
+	el.repo.addEventListener("change", () => {
+		if (el.repo.value) el.repo.size = 1;
+	});
 	el.repoOwner.addEventListener("change", applyRepoFilters);
 	// auth.js re-renders the repo select on every load/refresh/account switch —
 	// re-apply the active filters whenever its option list changes.
-	new MutationObserver(applyRepoFilters).observe(el.repo, {
+	repoObserver = new MutationObserver(applyRepoFilters);
+	repoObserver.observe(el.repo, {
 		childList: true,
 	});
 }

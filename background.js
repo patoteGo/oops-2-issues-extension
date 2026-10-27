@@ -42,6 +42,50 @@ function isRestrictedUrl(url) {
 	);
 }
 
+/** Verify a PAT from the extension worker, away from the side-panel renderer. */
+async function verifyGitHubToken(token) {
+	if (typeof token !== "string" || !token.trim()) {
+		throw new Error("Paste a GitHub token first.");
+	}
+
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 10_000);
+	try {
+		const response = await fetch("https://api.github.com/user", {
+			headers: {
+				Authorization: `Bearer ${token.trim()}`,
+				Accept: "application/vnd.github+json",
+				"X-GitHub-Api-Version": "2022-11-28",
+			},
+			signal: controller.signal,
+		});
+		if (!response.ok) {
+			let message = `${response.status} ${response.statusText}`;
+			try {
+				message = (await response.json())?.message || message;
+			} catch {
+				/* keep the HTTP status */
+			}
+			throw new Error(message);
+		}
+
+		const user = await response.json();
+		return {
+			login: user.login,
+			name: user.name || null,
+			avatar_url: user.avatar_url,
+			html_url: user.html_url,
+		};
+	} catch (error) {
+		if (controller.signal.aborted) {
+			throw new Error("GitHub did not respond within 10 seconds. Try again.");
+		}
+		throw error;
+	} finally {
+		clearTimeout(timeout);
+	}
+}
+
 /** Capture PNG + scrape metadata for the active tab. */
 async function captureVisible() {
 	const tab = await getActiveTab();
@@ -80,6 +124,14 @@ async function injectSelector(tabId) {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 	if (!message || typeof message !== "object") return false;
+	if (message.action === "VERIFY_GITHUB_TOKEN") {
+		verifyGitHubToken(message.token)
+			.then((user) => sendResponse({ ok: true, user }))
+			.catch((error) =>
+				sendResponse({ ok: false, error: error?.message || String(error) }),
+			);
+		return true;
+	}
 
 	if (message.action === "CAPTURE_FULL") {
 		captureVisible()
